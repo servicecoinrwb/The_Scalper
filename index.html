@@ -445,14 +445,14 @@ textarea{resize:vertical;min-height:60px}
 
   <!-- MT4 week selector (for trader log submission) -->
   <div id="mt4WeekPicker" style="display:none">
-    <div class="sec-divider">MT4 Log Submission</div>
-    <div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">
-      Select a week to auto-fill the log submission form below
+    <div class="sec-divider" id="weekPickerLabel">Weekly Performance Breakdown</div>
+    <div id="weekPickerSub" style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">
+      Detailed week-by-week trading results
     </div>
     <div class="mt4-table-wrap">
       <table class="mt4t">
         <thead><tr>
-          <th>Week</th><th>Dates</th><th>Trades</th><th>Net P&L</th><th>Gross Profit</th><th>Gross Loss</th><th>Commission</th><th></th>
+          <th>Week</th><th>Dates</th><th>Trades</th><th>Net P&L</th><th>Gross Profit</th><th>Gross Loss</th><th>Commission</th><th class="wk-use-btn" style="display:none"></th>
         </tr></thead>
         <tbody id="mt4WeekBody"></tbody>
       </table>
@@ -684,25 +684,53 @@ async function refreshW3(){
     else if(isWL){rb.className='role-badge rb-user';rb.textContent='Whitelisted';rd.textContent='You may deposit ETH or USDT';}
     else{rb.className='role-badge rb-user';rb.textContent='Not Whitelisted';rd.textContent='Contact the fund owner to be added';}
 
-    // Role-gate: only trader/owner sees the upload zone + week picker
-    const hasSavedData=!!localStorage.getItem(LS_KEY);
+    // ── Visibility rules ────────────────────────────────────────────────
+    // Charts / stats / tables → ALL users (when data exists)
+    // File upload control     → Trader / Owner only
+    // MT4 submit form         → Trader / Owner only (traderSection already gated)
+    // Week picker "Use" btns  → Trader / Owner only (hidden via CSS class)
+    const hasSavedData = !!localStorage.getItem(LS_KEY);
+
+    // Charts & week picker: show for everyone when data exists
+    if(hasSavedData){
+      show('heroStats');
+      show('chartsSection');
+      show('mt4WeekPicker');
+      document.getElementById('noDataPlaceholder').style.display='none';
+    } else {
+      document.getElementById('heroStats').style.display='none';
+      document.getElementById('chartsSection').style.display='none';
+      document.getElementById('mt4WeekPicker').style.display='none';
+      // Placeholder: only show to non-traders (traders see the upload zone instead)
+      document.getElementById('noDataPlaceholder').style.display=isTrader?'none':'block';
+    }
+
+    // Upload control: trader/owner only
     if(isTrader){
       document.getElementById('traderUploadWrap').style.display='block';
-      document.getElementById('noDataPlaceholder').style.display='none';
       if(hasSavedData){
         document.getElementById('uploadBanner').style.display='none';
         document.getElementById('traderUpdateBtn').style.display='block';
-      }else{
+      } else {
         document.getElementById('uploadBanner').style.display='block';
         document.getElementById('traderUpdateBtn').style.display='none';
       }
-      if(hasSavedData) document.getElementById('mt4WeekPicker').style.display='block';
-    }else{
-      // Non-traders: charts visible (if data exists), no upload control
+    } else {
       document.getElementById('traderUploadWrap').style.display='none';
-      document.getElementById('mt4WeekPicker').style.display='none';
-      if(!hasSavedData) document.getElementById('noDataPlaceholder').style.display='block';
     }
+
+    // "Use ↓" buttons in week picker: trader/owner only
+    document.querySelectorAll('.wk-use-btn').forEach(btn=>{
+      btn.style.display = isTrader ? 'block' : 'none';
+    });
+
+    // Week picker section label: show "Weekly Breakdown" for users, "MT4 Log Submission" for traders
+    const wpLabel = document.getElementById('weekPickerLabel');
+    if(wpLabel) wpLabel.textContent = isTrader ? 'MT4 Log Submission' : 'Weekly Performance Breakdown';
+    const wpSub = document.getElementById('weekPickerSub');
+    if(wpSub) wpSub.textContent = isTrader
+      ? 'Select a week to auto-fill the log submission form below'
+      : 'Detailed week-by-week trading results';
 
     // My position
     show('positionSection');
@@ -807,15 +835,18 @@ function fromCompact(c) {
 }
 
 function tryLoadSaved() {
-  // Roles aren't known yet at boot — never show placeholder here.
-  // refreshW3() handles showing it for non-traders after connect.
-  // If saved data exists, render charts for everyone immediately.
+  // Runs at boot BEFORE wallet connect — roles unknown.
+  // If data exists: render charts + week picker for everyone immediately.
+  // Placeholder / upload zone shown later by refreshW3() once role is known.
   try {
     const raw = localStorage.getItem(LS_KEY);
-    if (!raw) return; // Nothing saved yet — wait for role determination
+    if (!raw) return; // No data yet — refreshW3 will handle placeholders
     const compact = JSON.parse(raw);
     const data = fromCompact(compact);
     renderDashboard(data, compact.filename);
+    // Show week picker for everyone at boot (Use buttons start hidden,
+    // refreshW3 reveals them for traders after connect)
+    show('mt4WeekPicker');
   } catch(e) {
     console.warn('[Scalper] Load failed, clearing:', e);
     localStorage.removeItem(LS_KEY);
@@ -1070,7 +1101,7 @@ function renderDashboard(data,filename){
   buildMonthlyTable(data);
   buildInstruments(data);
   buildMT4WeekPicker(data);
-  if(isTrader)show('mt4WeekPicker');
+  // mt4WeekPicker visibility controlled by refreshW3 after role is known
 }
 
 // ─── Equity Curve ─────────────────────────────────────
@@ -1329,7 +1360,7 @@ function buildMT4WeekPicker(data){
       <td class="pp">+$${fmt2(w.gProfit)}</td>
       <td class="pn">-$${fmt2(Math.abs(w.gLoss))}</td>
       <td style="color:var(--muted)">$${fmt2(w.commission)}</td>
-      <td><button class="btn btn-green btn-sm" onclick="pickWeek(event,${idx})">Use ↓</button></td>
+      <td><button class="btn btn-green btn-sm wk-use-btn" onclick="pickWeek(event,${idx})" style="display:none">Use ↓</button></td>
     </tr>`;
   });
 }
