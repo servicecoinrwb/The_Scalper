@@ -9,21 +9,21 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root{
-  --bg:     #07090d;
-  --bg2:    #0d1117;
-  --bg3:    #121820;
-  --bg4:    #1a2333;
-  --border: #1e2d3d;
-  --border2:#253347;
-  --green:  #00d47c;
-  --green2: #00ff9d;
-  --red:    #f03e3e;
-  --amber:  #f59f00;
-  --blue:   #4dabf7;
-  --muted:  #4a5568;
-  --dim:    #2d3748;
-  --text:   #c9d1d9;
-  --text2:  #8b949e;
+  --bg:     #f0f2f5;
+  --bg2:    #ffffff;
+  --bg3:    #e8ebef;
+  --bg4:    #dde1e7;
+  --border: #d0d7de;
+  --border2:#b8c0cc;
+  --green:  #00925a;
+  --green2: #007a4a;
+  --red:    #d1242f;
+  --amber:  #bf8700;
+  --blue:   #0969da;
+  --muted:  #656d76;
+  --dim:    #adb5bd;
+  --text:   #1a1f2e;
+  --text2:  #424a53;
   --mono:   'JetBrains Mono', monospace;
   --brand:  'Bebas Neue', sans-serif;
   --serif:  'DM Serif Display', serif;
@@ -33,11 +33,7 @@ html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:12px;min-height:100vh;overflow-x:hidden}
 
 /* ─── Scanline overlay ─────────────────── */
-body::after{
-  content:'';position:fixed;inset:0;
-  background:repeating-linear-gradient(0deg,rgba(0,212,124,.012) 0px,rgba(0,212,124,.012) 1px,transparent 1px,transparent 3px);
-  pointer-events:none;z-index:9999
-}
+/* scanline removed for light theme */
 
 /* ─── Layout ───────────────────────────── */
 .wrap{max-width:1280px;margin:0 auto;padding:0 24px 80px}
@@ -46,13 +42,14 @@ body::after{
 nav{
   display:flex;align-items:center;justify-content:space-between;
   padding:0 24px;height:56px;
-  background:rgba(7,9,13,.95);
+  background:rgba(240,242,245,.97);
   border-bottom:1px solid var(--border);
   position:sticky;top:0;z-index:100;
-  backdrop-filter:blur(12px)
+  backdrop-filter:blur(12px);
+  box-shadow:0 1px 4px rgba(0,0,0,0.08)
 }
 .nav-brand{display:flex;align-items:baseline;gap:10px}
-.nav-brand .logo{font-family:var(--brand);font-size:26px;letter-spacing:.04em;color:var(--green2);line-height:1}
+.nav-brand .logo{font-family:var(--brand);font-size:26px;letter-spacing:.04em;color:var(--green);line-height:1}
 .nav-brand .logo span{color:var(--text2);font-size:22px}
 .nav-brand .tagline{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
 .nav-right{display:flex;align-items:center;gap:12px}
@@ -63,9 +60,9 @@ nav{
   padding:4px 10px
 }
 .phase-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--muted)}
-.phase-pill.open .dot{background:var(--green);box-shadow:0 0 6px var(--green)}
-.phase-pill.trading .dot{background:var(--amber);box-shadow:0 0 6px var(--amber)}
-.phase-pill.returning .dot{background:var(--blue);box-shadow:0 0 6px var(--blue)}
+.phase-pill.open .dot{background:var(--green);box-shadow:none}
+.phase-pill.trading .dot{background:var(--amber);box-shadow:none}
+.phase-pill.returning .dot{background:var(--blue);box-shadow:none}
 #connectBtn{
   background:transparent;border:1px solid var(--green);
   color:var(--green);font-family:var(--mono);font-size:10px;
@@ -84,7 +81,7 @@ nav{
 .hero-brand h1{
   font-family:var(--brand);font-size:72px;letter-spacing:.06em;
   line-height:.9;color:var(--green2);
-  text-shadow:0 0 40px rgba(0,255,157,.15)
+  text-shadow:none
 }
 .hero-brand h1 em{color:var(--text2);font-style:normal;font-size:60px}
 .hero-brand p{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-top:8px}
@@ -92,18 +89,18 @@ nav{
 /* ─── Upload banner (shown before parse) ─ */
 #uploadBanner{
   border:1px dashed var(--border2);
-  background:linear-gradient(135deg,rgba(0,212,124,.03),rgba(7,9,13,0));
+  background:linear-gradient(135deg,rgba(0,146,90,.05),rgba(240,242,245,0));
   padding:40px;text-align:center;cursor:pointer;position:relative;
   transition:border-color .2s,background .2s;
   margin:24px 0
 }
-#uploadBanner:hover,#uploadBanner.over{border-color:var(--green);background:rgba(0,212,124,.05)}
+#uploadBanner:hover,#uploadBanner.over{border-color:var(--green);background:rgba(0,146,90,.06)}
 #uploadBanner input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
 #uploadBanner .up-icon{font-size:36px;margin-bottom:12px}
 #uploadBanner h3{font-family:var(--brand);font-size:28px;letter-spacing:.08em;color:var(--text);margin-bottom:8px}
 #uploadBanner p{font-size:11px;color:var(--muted);letter-spacing:.06em}
 #uploadBanner p span{color:var(--green)}
-#uploadBanner.loaded{border-color:var(--green);border-style:solid;background:rgba(0,212,124,.04)}
+#uploadBanner.loaded{border-color:var(--green);border-style:solid;background:rgba(0,146,90,.05)}
 
 /* ─── Stat cards ────────────────────────── */
 .stat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:2px}
@@ -135,8 +132,8 @@ nav{
   font-size:9px;letter-spacing:.1em;text-transform:uppercase;
   padding:3px 9px;border:1px solid var(--border);color:var(--muted)
 }
-.badge.green{border-color:rgba(0,212,124,.4);color:var(--green);background:rgba(0,212,124,.08)}
-.badge.red{border-color:rgba(240,62,62,.4);color:var(--red);background:rgba(240,62,62,.08)}
+.badge.green{border-color:rgba(0,146,90,.4);color:var(--green);background:rgba(0,146,90,.08)}
+.badge.red{border-color:rgba(209,36,47,.4);color:var(--red);background:rgba(209,36,47,.08)}
 .chart-inner{position:relative;height:260px}
 .chart-inner.tall{height:340px}
 
@@ -150,8 +147,8 @@ nav{
   transition:all .2s
 }
 .tab:last-child{border-right:none}
-.tab.active{background:rgba(0,212,124,.08);color:var(--green);font-weight:700}
-.tab:hover:not(.active){background:rgba(255,255,255,.02);color:var(--text2)}
+.tab.active{background:rgba(0,146,90,.1);color:var(--green);font-weight:700}
+.tab:hover:not(.active){background:rgba(0,0,0,.03);color:var(--text2)}
 .tab-panel{display:none}
 .tab-panel.active{display:block}
 
@@ -207,7 +204,7 @@ nav{
   color:var(--muted);border-right:1px solid var(--border);transition:all .4s
 }
 .ps:last-child{border-right:none}
-.ps.active{background:rgba(0,212,124,.08);color:var(--green);font-weight:700}
+.ps.active{background:rgba(0,146,90,.1);color:var(--green);font-weight:700}
 .ps.done{color:var(--green)}
 
 /* ─── Pool stats ────────────────────────── */
@@ -248,9 +245,9 @@ textarea{resize:vertical;min-height:60px}
 /* ─── Alerts ────────────────────────────── */
 .alert{padding:9px 13px;font-size:11px;margin-top:10px;border-left:2px solid;display:none;line-height:1.5}
 .alert.show{display:block}
-.alert.info{border-color:var(--green);background:rgba(0,212,124,.06);color:var(--green)}
-.alert.ok{border-color:var(--green2);background:rgba(0,255,157,.05);color:var(--green2)}
-.alert.err{border-color:var(--red);background:rgba(240,62,62,.06);color:var(--red)}
+.alert.info{border-color:var(--green);background:rgba(0,146,90,.07);color:var(--green)}
+.alert.ok{border-color:var(--green2);background:rgba(0,146,90,.07);color:var(--green)}
+.alert.err{border-color:var(--red);background:rgba(209,36,47,.06);color:var(--red)}
 
 /* ─── MT4 week table ────────────────────── */
 .mt4-table-wrap{max-height:260px;overflow-y:auto;border:1px solid var(--border);margin-top:16px}
@@ -267,14 +264,14 @@ textarea{resize:vertical;min-height:60px}
 
 /* ─── Misc ──────────────────────────────── */
 .pp{color:var(--green)}.pn{color:var(--red)}.pa{color:var(--amber)}
-.wl-chip{display:inline-block;font-size:10px;padding:2px 8px;background:rgba(0,212,124,.1);border:1px solid rgba(0,212,124,.25);color:var(--green);margin:3px 3px 3px 0}
+.wl-chip{display:inline-block;font-size:10px;padding:2px 8px;background:rgba(0,146,90,.1);border:1px solid rgba(0,146,90,.3);color:var(--green);margin:3px 3px 3px 0}
 .role-badge{display:inline-block;font-size:8px;letter-spacing:.12em;text-transform:uppercase;padding:3px 10px;border:1px solid currentColor;margin-bottom:10px;margin-right:8px}
 .rb-owner{color:var(--amber)}.rb-trader{color:var(--green)}.rb-user{color:var(--muted)}
 .spin{display:inline-block;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .pulsing{animation:pulse 1.8s ease-in-out infinite}
-.fill-badge{display:inline-block;background:rgba(0,212,124,.12);border:1px solid rgba(0,212,124,.3);color:var(--green);font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;margin-left:8px;vertical-align:middle}
+.fill-badge{display:inline-block;background:rgba(0,146,90,.1);border:1px solid rgba(0,146,90,.35);color:var(--green);font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;margin-left:8px;vertical-align:middle}
 @media(max-width:768px){
   .stat-grid{grid-template-columns:repeat(3,1fr)}
   .stat-grid.four{grid-template-columns:repeat(2,1fr)}
@@ -333,7 +330,7 @@ textarea{resize:vertical;min-height:60px}
 
   <!-- Placeholder shown to non-traders when no data exists yet -->
   <div id="noDataPlaceholder" style="display:none">
-    <div style="border:1px solid var(--border);padding:40px;text-align:center;margin:24px 0">
+    <div style="border:1px solid var(--border);padding:40px;text-align:center;margin:24px 0;background:var(--bg2)">
       <div style="font-size:28px;margin-bottom:12px">📈</div>
       <div style="font-family:var(--brand);font-size:22px;letter-spacing:.06em;color:var(--text2);margin-bottom:8px">Performance data loading</div>
       <div style="font-size:11px;color:var(--muted)">The trader publishes weekly stats here after each session.</div>
@@ -1119,14 +1116,14 @@ function buildEquityChart(data){
   const ctx=document.getElementById('equityChart').getContext('2d');
   if(equityChartInst)equityChartInst.destroy();
 
-  const green='rgba(0,212,124,1)', greenFade='rgba(0,212,124,0)';
-  const red='rgba(240,62,62,1)',   redFade='rgba(240,62,62,0)';
+  const green='rgba(0,146,90,1)', greenFade='rgba(0,146,90,0)';
+  const red='rgba(209,36,47,1)',   redFade='rgba(209,36,47,0)';
   const gradUp=ctx.createLinearGradient(0,0,0,340);
-  gradUp.addColorStop(0,'rgba(0,212,124,0.18)');
-  gradUp.addColorStop(1,'rgba(0,212,124,0)');
+  gradUp.addColorStop(0,'rgba(0,146,90,0.15)');
+  gradUp.addColorStop(1,'rgba(0,146,90,0)');
   const gradDown=ctx.createLinearGradient(0,0,0,340);
-  gradDown.addColorStop(0,'rgba(240,62,62,0)');
-  gradDown.addColorStop(1,'rgba(240,62,62,0.1)');
+  gradDown.addColorStop(0,'rgba(209,36,47,0)');
+  gradDown.addColorStop(1,'rgba(209,36,47,0.1)');
 
   // Color segments: green where positive, red where negative
   const pointColors=vals.map(v=>v>=0?green:red);
@@ -1150,7 +1147,7 @@ function buildEquityChart(data){
       },{
         label:'Zero line',
         data:labels.map(()=>0),
-        borderColor:'rgba(255,255,255,0.08)',
+        borderColor:'rgba(0,0,0,0.12)',
         borderWidth:1,
         borderDash:[4,4],
         pointRadius:0,
@@ -1163,9 +1160,9 @@ function buildEquityChart(data){
       plugins:{
         legend:{display:false},
         tooltip:{
-          backgroundColor:'rgba(13,17,23,0.95)',
-          borderColor:'rgba(30,45,61,1)',borderWidth:1,
-          titleColor:'#8b949e',bodyColor:'#c9d1d9',
+          backgroundColor:'rgba(255,255,255,0.97)',
+          borderColor:'rgba(208,215,222,1)',borderWidth:1,
+          titleColor:'#656d76',bodyColor:'#1a1f2e',
           callbacks:{
             label:ctx=>ctx.datasetIndex===0?`P&L: ${ctx.raw>=0?'+':''}$${fmt2(ctx.raw)}`:'',
           }
@@ -1173,11 +1170,11 @@ function buildEquityChart(data){
       },
       scales:{
         x:{
-          grid:{color:'rgba(255,255,255,0.03)',drawBorder:false},
-          ticks:{color:'#4a5568',font:{family:'JetBrains Mono',size:9},maxTicksLimit:12,maxRotation:0}
+          grid:{color:'rgba(0,0,0,0.05)',drawBorder:false},
+          ticks:{color:'#656d76',font:{family:'JetBrains Mono',size:9},maxTicksLimit:12,maxRotation:0}
         },
         y:{
-          grid:{color:'rgba(255,255,255,0.04)',drawBorder:false},
+          grid:{color:'rgba(0,0,0,0.06)',drawBorder:false},
           ticks:{
             color:'#4a5568',font:{family:'JetBrains Mono',size:9},
             callback:v=>'$'+fmt2(v)
@@ -1194,7 +1191,7 @@ function buildDailyChart(data){
   const days=data.days.slice(-60);
   const labels=days.map(d=>d.date.slice(5)); // MM-DD
   const vals=days.map(d=>d.net);
-  const colors=vals.map(v=>v>=0?'rgba(0,212,124,0.7)':'rgba(240,62,62,0.7)');
+  const colors=vals.map(v=>v>=0?'rgba(0,146,90,0.8)':'rgba(209,36,47,0.8)');
 
   // Badge
   const best=Math.max(...data.days.map(d=>d.net));
@@ -1215,7 +1212,7 @@ function buildDailyChart(data){
 function buildWeeklyChart(data){
   const labels=data.weeks.map(w=>w.key.replace('-W','\nW'));
   const vals=data.weeks.map(w=>w.net);
-  const colors=vals.map(v=>v>=0?'rgba(0,212,124,0.7)':'rgba(240,62,62,0.7)');
+  const colors=vals.map(v=>v>=0?'rgba(0,146,90,0.8)':'rgba(209,36,47,0.8)');
   const best=Math.max(...vals), worst=Math.min(...vals);
   setTxt('wBestWeek','Best: +$'+fmt2(best));
   setTxt('wWorstWeek','Worst: -$'+fmt2(Math.abs(worst)));
@@ -1232,7 +1229,7 @@ function buildWeeklyChart(data){
 function buildMonthlyChart(data){
   const labels=data.months.map(m=>m.label);
   const vals=data.months.map(m=>m.net);
-  const colors=vals.map(v=>v>=0?'rgba(0,212,124,0.7)':'rgba(240,62,62,0.7)');
+  const colors=vals.map(v=>v>=0?'rgba(0,146,90,0.8)':'rgba(209,36,47,0.8)');
   const best=Math.max(...vals), worst=Math.min(...vals);
   setTxt('mBestMonth','Best: +$'+fmt2(best));
   setTxt('mWorstMonth','Worst: -$'+fmt2(Math.abs(worst)));
@@ -1249,13 +1246,13 @@ function barOpts(yFmt){
   return{
     responsive:true,maintainAspectRatio:false,
     plugins:{legend:{display:false},tooltip:{
-      backgroundColor:'rgba(13,17,23,.95)',borderColor:'rgba(30,45,61,1)',borderWidth:1,
-      titleColor:'#8b949e',bodyColor:'#c9d1d9',
+      backgroundColor:'rgba(255,255,255,.97)',borderColor:'rgba(208,215,222,1)',borderWidth:1,
+      titleColor:'#656d76',bodyColor:'#1a1f2e',
       callbacks:{label:ctx=>`${ctx.raw>=0?'+':''}$${fmt2(ctx.raw)}`}
     }},
     scales:{
-      x:{grid:{display:false},ticks:{color:'#4a5568',font:{family:'JetBrains Mono',size:9},maxRotation:0,maxTicksLimit:20}},
-      y:{grid:{color:'rgba(255,255,255,0.04)',drawBorder:false},ticks:{color:'#4a5568',font:{family:'JetBrains Mono',size:9},callback:yFmt}}
+      x:{grid:{display:false},ticks:{color:'#656d76',font:{family:'JetBrains Mono',size:9},maxRotation:0,maxTicksLimit:20}},
+      y:{grid:{color:'rgba(0,0,0,0.06)',drawBorder:false},ticks:{color:'#4a5568',font:{family:'JetBrains Mono',size:9},callback:yFmt}}
     }
   };
 }
@@ -1538,8 +1535,8 @@ function fE(wei){return parseFloat(ethers.formatEther(wei)).toFixed(4);}
 function fU(raw){return(Number(raw)/1e6).toFixed(2);}
 
 // Chart.js global defaults
-Chart.defaults.color='#4a5568';
-Chart.defaults.borderColor='rgba(255,255,255,0.04)';
+Chart.defaults.color='#656d76';
+Chart.defaults.borderColor='rgba(0,0,0,0.06)';
 Chart.defaults.font.family='JetBrains Mono';
 
 // Auto-load saved statement on every page open (works for all users)
