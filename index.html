@@ -685,7 +685,7 @@ async function refreshW3(){
     else{rb.className='role-badge rb-user';rb.textContent='Not Whitelisted';rd.textContent='Contact the fund owner to be added';}
 
     // Role-gate: only trader/owner sees the upload zone + week picker
-    const hasSavedData=!!localStorage.getItem('scalper_mt4');
+    const hasSavedData=!!localStorage.getItem(LS_KEY);
     if(isTrader){
       document.getElementById('traderUploadWrap').style.display='block';
       document.getElementById('noDataPlaceholder').style.display='none';
@@ -807,16 +807,18 @@ function fromCompact(c) {
 }
 
 function tryLoadSaved() {
+  // Roles aren't known yet at boot — never show placeholder here.
+  // refreshW3() handles showing it for non-traders after connect.
+  // If saved data exists, render charts for everyone immediately.
   try {
     const raw = localStorage.getItem(LS_KEY);
-    if (!raw) { show('noDataPlaceholder'); return; }
+    if (!raw) return; // Nothing saved yet — wait for role determination
     const compact = JSON.parse(raw);
     const data = fromCompact(compact);
     renderDashboard(data, compact.filename);
   } catch(e) {
     console.warn('[Scalper] Load failed, clearing:', e);
     localStorage.removeItem(LS_KEY);
-    show('noDataPlaceholder');
   }
 }
 
