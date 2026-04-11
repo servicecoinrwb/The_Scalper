@@ -330,7 +330,32 @@ textarea{resize:vertical;min-height:60px}
       </div>
       <div class="alert" id="publishAlert" style="margin-top:8px"></div>
       <div style="margin-top:8px;font-size:10px;color:var(--muted);line-height:1.6;border-left:2px solid var(--border);padding-left:10px">
-        <strong style="color:var(--text2)">How to share with users:</strong> Click <em>Publish Data File</em> → download <code>scalper-data.json</code> → commit it to the same folder as this HTML in your GitHub repo. All users see the charts on their next visit — no wallet required.
+        <strong style="color:var(--text2)">Option A &mdash; Auto-push:</strong>
+        Fill in GitHub settings below and click <em>Push to GitHub</em> &mdash; users see live data in ~30s.<br>
+        <strong style="color:var(--text2)">Option B &mdash; Manual:</strong>
+        Click <em>Publish Data File</em> then commit <code>scalper-data.json</code> to your repo.
+      </div>
+      <div style="margin-top:14px;border:1px solid var(--border);padding:14px">
+        <div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;cursor:pointer" onclick="toggleGHSettings()">
+          GitHub Auto-push Settings <span id="ghToggleIcon">&#9660;</span>
+        </div>
+        <div id="ghSettings">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div><label class="fl">GitHub Owner / Org</label><input type="text" id="ghOwner" placeholder="servicecoinrwb"/></div>
+            <div><label class="fl">Repository Name</label><input type="text" id="ghRepo" placeholder="The_Scalper"/></div>
+            <div><label class="fl">Branch</label><input type="text" id="ghBranch" placeholder="main"/></div>
+            <div><label class="fl">File Path in Repo</label><input type="text" id="ghPath" placeholder="scalper-data.json"/></div>
+          </div>
+          <label class="fl">Personal Access Token
+            <span style="color:var(--muted);font-size:9px">(needs Contents: Read &amp; Write &mdash; stored in your browser only, never leaves your device)</span>
+          </label>
+          <input type="password" id="ghToken" placeholder="github_pat_..."/>
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+            <button class="btn btn-green" style="width:auto;padding:7px 18px;font-size:10px;display:inline-block" onclick="pushToGitHub()">&#128640; Push to GitHub</button>
+            <button class="btn btn-ghost" style="width:auto;padding:7px 14px;font-size:10px;display:inline-block" onclick="saveGHSettings()">Save Settings</button>
+          </div>
+          <div class="alert" id="ghAlert" style="margin-top:8px"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -788,6 +813,128 @@ traderWrap.addEventListener('drop',e=>{
 function handleFile(e){const f=e.target.files[0];if(f)loadFile(f);}
 
 
+
+// ═══════════════════════════════════════════════════════
+// GITHUB AUTO-PUSH
+// Uses GitHub Contents API to commit scalper-data.json
+// directly from the browser. Token stored in localStorage.
+// ═══════════════════════════════════════════════════════
+
+const GH_KEY = 'scalper_gh_settings';
+
+function saveGHSettings() {
+  const settings = {
+    owner:  document.getElementById('ghOwner').value.trim(),
+    repo:   document.getElementById('ghRepo').value.trim(),
+    branch: document.getElementById('ghBranch').value.trim() || 'main',
+    path:   document.getElementById('ghPath').value.trim()   || 'scalper-data.json',
+    token:  document.getElementById('ghToken').value.trim(),
+  };
+  if (!settings.owner || !settings.repo || !settings.token) {
+    return sa('ghAlert','err','Fill in Owner, Repo, and Token before saving.');
+  }
+  try {
+    localStorage.setItem(GH_KEY, JSON.stringify(settings));
+    sa('ghAlert','ok','Settings saved to your browser.');
+  } catch(e) {
+    sa('ghAlert','err','Could not save settings: ' + e.message);
+  }
+}
+
+function loadGHSettings() {
+  try {
+    const raw = localStorage.getItem(GH_KEY);
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    if (s.owner)  document.getElementById('ghOwner').value  = s.owner;
+    if (s.repo)   document.getElementById('ghRepo').value   = s.repo;
+    if (s.branch) document.getElementById('ghBranch').value = s.branch;
+    if (s.path)   document.getElementById('ghPath').value   = s.path;
+    if (s.token)  document.getElementById('ghToken').value  = s.token;
+  } catch(e) {}
+}
+
+function toggleGHSettings() {
+  const el   = document.getElementById('ghSettings');
+  const icon = document.getElementById('ghToggleIcon');
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  icon.innerHTML   = open ? '&#9654;' : '&#9660;';
+}
+
+async function pushToGitHub() {
+  const raw = localStorage.getItem(LS_KEY);
+  if (!raw) return sa('ghAlert','err','No data to push. Upload an MT4 statement first.');
+
+  // Load settings from inputs (in case unsaved)
+  const owner  = document.getElementById('ghOwner').value.trim();
+  const repo   = document.getElementById('ghRepo').value.trim();
+  const branch = document.getElementById('ghBranch').value.trim() || 'main';
+  const path   = document.getElementById('ghPath').value.trim()   || 'scalper-data.json';
+  const token  = document.getElementById('ghToken').value.trim();
+
+  if (!owner || !repo || !token) {
+    return sa('ghAlert','err','Fill in Owner, Repo, and Token first.');
+  }
+
+  sa('ghAlert','info','Connecting to GitHub... <span class="spin">&#10227;</span>');
+
+  const apiBase = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+  const headers = {
+    'Authorization': `Bearer ${token}`,
+    'Accept': 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+    'Content-Type': 'application/json',
+  };
+
+  try {
+    // Step 1: Get current file SHA (needed for update; null if new file)
+    let sha = null;
+    try {
+      const getRes = await fetch(apiBase + '?ref=' + branch, { headers });
+      if (getRes.ok) {
+        const existing = await getRes.json();
+        sha = existing.sha;
+      }
+    } catch(_) {}
+
+    // Step 2: Base64-encode the JSON content
+    const content = btoa(unescape(encodeURIComponent(raw)));
+    const now     = new Date().toISOString().slice(0,10);
+
+    const body = {
+      message: `chore: update scalper-data.json [${now}]`,
+      content,
+      branch,
+      ...(sha ? { sha } : {}),
+    };
+
+    // Step 3: PUT to GitHub Contents API
+    sa('ghAlert','info','Pushing data... <span class="spin">&#10227;</span>');
+    const putRes = await fetch(apiBase, {
+      method:  'PUT',
+      headers,
+      body:    JSON.stringify(body),
+    });
+
+    if (putRes.ok) {
+      const result = await putRes.json();
+      const commitUrl = result.commit?.html_url || '#';
+      sa('ghAlert','ok',
+        `&#10003; Pushed successfully! GitHub Pages will update in ~30 seconds. ` +
+        `<a href="${commitUrl}" target="_blank" style="color:var(--green);text-decoration:underline">View commit &rarr;</a>`
+      );
+      // Save settings for next time
+      saveGHSettings();
+    } else {
+      const err = await putRes.json();
+      sa('ghAlert','err', `GitHub API error ${putRes.status}: ${err.message || 'Unknown error'}`);
+    }
+  } catch(e) {
+    sa('ghAlert','err', 'Network error: ' + e.message);
+  }
+}
+
 // ═══════════════════════════════════════════════════════
 // LOCALSTORAGE PERSISTENCE
 // Saved by trader, auto-loaded for all users on page open.
@@ -804,7 +951,23 @@ function saveCompact(data, filename) {
       accountNum:data.accountNum, traderName:data.traderName,
       statDate:data.statDate, currency:data.currency,
       winCount, lossCount,
-      summary: data.summary,
+      summary: {
+        totalNetProfit:   data.summary.totalNetProfit,
+        grossProfit:      data.summary.grossProfit,
+        grossLoss:        data.summary.grossLoss,
+        totalTrades:      data.summary.totalTrades,
+        winCount:         data.summary.winCount,
+        lossCount:        data.summary.lossCount,
+        profitFactor:     data.summary.profitFactor,
+        avgWin:           data.summary.avgWin,
+        avgLoss:          data.summary.avgLoss,
+        maxDrawdown:      data.summary.maxDrawdown,
+        peakPnl:          data.summary.peakPnl,
+        balance:          data.summary.balance,
+        depositWithdrawal:data.summary.depositWithdrawal,
+        closedTradePL:    data.summary.closedTradePL,
+        expectedPayoff:   data.summary.expectedPayoff,
+      },
       eq: data.equityCurve.map(p=>[p.date?p.date.getTime():0, p.val]),
       days: data.days.map(d=>({date:d.date, n:d.trades.length, gP:d.gProfit, gL:d.gLoss, c:d.commission, s:d.swap, net:d.net, run:d.running})),
       weeks: data.weeks.map(w=>({key:w.key, ws:w.weekStart?w.weekStart.getTime():0, we:w.weekEnd?w.weekEnd.getTime():0, n:w.trades.length, wins:w.wins||0, gP:w.gProfit, gL:w.gLoss, c:w.commission, s:w.swap, net:w.net})),
@@ -989,12 +1152,40 @@ function parseMT4(html){
     if(!m)return null;
     return parseFloat(m[1].replace(/\s/g,'').replace(/,/g,''))||0;
   }
+  // ── Compute stats directly from trade data (reliable, no regex failures) ──
+  const _execTrades = trades; // all executed trades (no balance entries)
+  const _winCount   = _execTrades.filter(t=>t.profit>0).length;
+  const _lossCount  = _execTrades.filter(t=>t.profit<0).length;
+  const _grossProfit= _execTrades.reduce((s,t)=>s+(t.profit>0?t.profit:0),0);
+  const _grossLoss  = _execTrades.reduce((s,t)=>s+(t.profit<0?t.profit:0),0); // negative
+  const _commission = _execTrades.reduce((s,t)=>s+t.commission,0);
+  const _swap       = _execTrades.reduce((s,t)=>s+t.swap,0);
+  const _taxes      = _execTrades.reduce((s,t)=>s+t.taxes,0);
+  const _totalNetPnl= _grossProfit+_grossLoss+_commission+_swap+_taxes;
+  const _pf         = _grossLoss!==0 ? _grossProfit/Math.abs(_grossLoss) : 0;
+  const _avgWin     = _winCount>0  ? _grossProfit/_winCount  : 0;
+  const _avgLoss    = _lossCount>0 ? Math.abs(_grossLoss)/_lossCount : 0;
+  const _maxDD      = (()=>{let peak=-Infinity,dd=0,run=0;
+    for(const t of _execTrades){run+=t.netContrib;if(run>peak)peak=run;if(peak-run>dd)dd=peak-run;}
+    return dd;})();
+
+  // Regex-extracted values only for fields not derivable from trades
   const summary={
-    totalNetProfit:xN('Total Net Profit'),grossProfit:xN('Gross Profit'),
-    grossLoss:xN('Gross Loss'),closedTradePL:xN('Closed Trade P/L'),
-    balance:xN('Balance'),depositWithdrawal:xN('Deposit/Withdrawal'),
-    totalTrades:xN('Total Trades'),profitFactor:xN('Profit Factor'),
-    expectedPayoff:xN('Expected Payoff'),maxDrawdown:null,
+    totalNetProfit:  _totalNetPnl,
+    grossProfit:     _grossProfit,
+    grossLoss:       _grossLoss,
+    totalTrades:     _execTrades.length,
+    winCount:        _winCount,
+    lossCount:       _lossCount,
+    profitFactor:    _pf,
+    avgWin:          _avgWin,
+    avgLoss:         _avgLoss,
+    maxDrawdown:     _maxDD,
+    peakPnl:         0, // filled after equity curve
+    balance:         xN('Balance'),
+    depositWithdrawal: xN('Deposit/Withdrawal'),
+    closedTradePL:   _totalNetPnl,
+    expectedPayoff:  _execTrades.length>0 ? _totalNetPnl/_execTrades.length : 0,
   };
 
   // Sort trades by close time
@@ -1077,6 +1268,11 @@ function parseMT4(html){
   const instruments=[...instMap.values()].sort((a,b)=>b.trades.length-a.trades.length);
   instruments.forEach(i=>{i.net=i.gProfit+i.gLoss+i.commission;});
 
+  // Fill peakPnl now that equityCurve is built
+  let _peak=-Infinity;
+  equityCurve.forEach(p=>{if(p.val>_peak)_peak=p.val;});
+  summary.peakPnl=_peak>-Infinity?_peak:0;
+
   return{accountNum,traderName,statDate,currency,trades,balances,equityCurve,days,weeks,months,instruments,summary};
 }
 
@@ -1103,11 +1299,13 @@ function renderDashboard(data,filename){
   // Hero stats
   show('heroStats'); show('chartsSection');
 
-  const winCount  = (data.winCount  !== undefined) ? data.winCount  : trades.filter(t=>t.profit>0).length;
-  const lossCount = (data.lossCount !== undefined) ? data.lossCount : trades.filter(t=>t.profit<0).length;
-  const winRate=trades.length>0?(winCount/trades.length*100):0;
-  const avgWin=winCount>0?(s.grossProfit/winCount):0;
-  const avgLoss=lossCount>0?(Math.abs(s.grossLoss)/lossCount):0;
+  // Use pre-computed values from summary (reliable whether fresh parse or compact load)
+  const winCount  = s.winCount  || (data.winCount  !== undefined ? data.winCount  : 0);
+  const lossCount = s.lossCount || (data.lossCount !== undefined ? data.lossCount : 0);
+  const totalT    = s.totalTrades || (winCount + lossCount);
+  const winRate   = totalT>0 ? (winCount/totalT*100) : 0;
+  const avgWin    = s.avgWin  || (winCount>0  ? (s.grossProfit/winCount)      : 0);
+  const avgLoss   = s.avgLoss || (lossCount>0 ? (Math.abs(s.grossLoss)/lossCount) : 0);
 
   // Stats
   const bal=s.balance||0;
@@ -1585,6 +1783,8 @@ Chart.defaults.font.family='JetBrains Mono';
 
 // Auto-load saved statement on every page open (works for all users)
 tryLoadSaved();
+// Pre-fill GitHub settings from localStorage if trader has configured them
+if(document.getElementById('ghOwner')) loadGHSettings();
 </script>
 </body>
 </html>
