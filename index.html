@@ -316,13 +316,28 @@ textarea{resize:vertical;min-height:60px}
     <p>Precision Scalp Trading Fund · Account #85102836 · Blaze Markets Limited · Ethereum Mainnet</p>
   </div>
 
-  <!-- Upload banner -->
-  <div id="uploadBanner">
-    <input type="file" id="mt4File" accept=".htm,.html" onchange="handleFile(event)"/>
-    <div class="up-icon">📊</div>
-    <h3>Load MT4 Statement</h3>
-    <p>Drop your <span>DetailedStatement.htm</span> to activate the trading dashboard</p>
-    <p style="margin-top:6px;font-size:10px">Parsed entirely in your browser — never uploaded to any server</p>
+  <!-- TRADER-ONLY upload (hidden for depositors / public) -->
+  <div id="traderUploadWrap" style="display:none">
+    <div id="uploadBanner">
+      <input type="file" id="mt4File" accept=".htm,.html" onchange="handleFile(event)"/>
+      <div class="up-icon">📊</div>
+      <h3>Load MT4 Statement</h3>
+      <p>Drop your <span>DetailedStatement.htm</span> to update the dashboard</p>
+      <p style="margin-top:6px;font-size:10px">Parsed in your browser · never uploaded · auto-saved for all users</p>
+    </div>
+    <div id="traderUpdateBtn" style="display:none;text-align:right;margin-top:8px">
+      <button class="btn btn-ghost" style="width:auto;padding:6px 16px;font-size:9px;display:inline-block" onclick="showUpload()">↑ Update Statement</button>
+      <button class="btn btn-red"   style="width:auto;padding:6px 16px;font-size:9px;display:inline-block;margin-left:6px" onclick="clearSaved()">Clear Saved Data</button>
+    </div>
+  </div>
+
+  <!-- Placeholder shown to non-traders when no data exists yet -->
+  <div id="noDataPlaceholder" style="display:none">
+    <div style="border:1px solid var(--border);padding:40px;text-align:center;margin:24px 0">
+      <div style="font-size:28px;margin-bottom:12px">📈</div>
+      <div style="font-family:var(--brand);font-size:22px;letter-spacing:.06em;color:var(--text2);margin-bottom:8px">Performance data loading</div>
+      <div style="font-size:11px;color:var(--muted)">The trader publishes weekly stats here after each session.</div>
+    </div>
   </div>
 
   <!-- Hero stats (hidden until parsed) -->
@@ -669,6 +684,26 @@ async function refreshW3(){
     else if(isWL){rb.className='role-badge rb-user';rb.textContent='Whitelisted';rd.textContent='You may deposit ETH or USDT';}
     else{rb.className='role-badge rb-user';rb.textContent='Not Whitelisted';rd.textContent='Contact the fund owner to be added';}
 
+    // Role-gate: only trader/owner sees the upload zone + week picker
+    const hasSavedData=!!localStorage.getItem('scalper_mt4');
+    if(isTrader){
+      document.getElementById('traderUploadWrap').style.display='block';
+      document.getElementById('noDataPlaceholder').style.display='none';
+      if(hasSavedData){
+        document.getElementById('uploadBanner').style.display='none';
+        document.getElementById('traderUpdateBtn').style.display='block';
+      }else{
+        document.getElementById('uploadBanner').style.display='block';
+        document.getElementById('traderUpdateBtn').style.display='none';
+      }
+      if(hasSavedData) document.getElementById('mt4WeekPicker').style.display='block';
+    }else{
+      // Non-traders: charts visible (if data exists), no upload control
+      document.getElementById('traderUploadWrap').style.display='none';
+      document.getElementById('mt4WeekPicker').style.display='none';
+      if(!hasSavedData) document.getElementById('noDataPlaceholder').style.display='block';
+    }
+
     // My position
     show('positionSection');
     setTxt('myEth',   fE(myED)+' ETH');
@@ -688,7 +723,7 @@ async function refreshW3(){
     document.getElementById('depositorSection').style.display=(isWL&&ph===0)?'block':'none';
     document.getElementById('ownerSection').style.display=isOwner?'block':'none';
     document.getElementById('traderSection').style.display=isTrader?'block':'none';
-    if(isTrader) document.getElementById('mt4WeekPicker').style.display='block';
+    // mt4WeekPicker visibility managed by refreshW3 role check
     show('logSection');
 
     // On-chain logs
@@ -711,13 +746,94 @@ async function refreshW3(){
 // MT4 PARSER
 // ═══════════════════════════════════════════════════════
 const banner=document.getElementById('uploadBanner');
-banner.addEventListener('dragover',e=>{e.preventDefault();banner.classList.add('over');});
-banner.addEventListener('dragleave',()=>banner.classList.remove('over'));
-banner.addEventListener('drop',e=>{
+const traderWrap=document.getElementById('traderUploadWrap');
+traderWrap.addEventListener('dragover',e=>{e.preventDefault();banner.classList.add('over');});
+traderWrap.addEventListener('dragleave',()=>banner.classList.remove('over'));
+traderWrap.addEventListener('drop',e=>{
   e.preventDefault();banner.classList.remove('over');
   const f=e.dataTransfer.files[0]; if(f)loadFile(f);
 });
 function handleFile(e){const f=e.target.files[0];if(f)loadFile(f);}
+
+
+// ═══════════════════════════════════════════════════════
+// LOCALSTORAGE PERSISTENCE
+// Saved by trader, auto-loaded for all users on page open.
+// ═══════════════════════════════════════════════════════
+const LS_KEY = 'scalper_mt4_v1';
+
+function saveCompact(data, filename) {
+  try {
+    const trades = data.trades || [];
+    const winCount  = (data.winCount  !== undefined) ? data.winCount  : trades.filter(t=>t.profit>0).length;
+    const lossCount = (data.lossCount !== undefined) ? data.lossCount : trades.filter(t=>t.profit<0).length;
+    const compact = {
+      v:1, filename: filename||'Statement',
+      accountNum:data.accountNum, traderName:data.traderName,
+      statDate:data.statDate, currency:data.currency,
+      winCount, lossCount,
+      summary: data.summary,
+      eq: data.equityCurve.map(p=>[p.date?p.date.getTime():0, p.val]),
+      days: data.days.map(d=>({date:d.date, n:d.trades.length, gP:d.gProfit, gL:d.gLoss, c:d.commission, s:d.swap, net:d.net, run:d.running})),
+      weeks: data.weeks.map(w=>({key:w.key, ws:w.weekStart?w.weekStart.getTime():0, we:w.weekEnd?w.weekEnd.getTime():0, n:w.trades.length, wins:w.wins||0, gP:w.gProfit, gL:w.gLoss, c:w.commission, s:w.swap, net:w.net})),
+      months: data.months.map(m=>({key:m.key, label:m.label, n:m.trades.length, wins:m.wins||0, gP:m.gProfit, gL:m.gLoss, c:m.commission, s:m.swap, net:m.net})),
+      inst: data.instruments.map(i=>({sym:i.sym, n:i.trades.length, wins:i.wins||0, gP:i.gProfit, gL:i.gLoss, c:i.commission, net:i.net}))
+    };
+    localStorage.setItem(LS_KEY, JSON.stringify(compact));
+    console.log('[Scalper] Saved ' + Math.round(JSON.stringify(compact).length/1024) + ' KB to localStorage');
+  } catch(e){ console.warn('[Scalper] localStorage save failed:', e); }
+}
+
+function fromCompact(c) {
+  const winCount  = c.winCount  || 0;
+  const lossCount = c.lossCount || 0;
+  // Synthetic trades array with correct length + filter() support
+  const syntheticTrades = Object.assign(
+    Array.from({length: winCount + lossCount}, (_,i)=>({profit: i < winCount ? 1 : -1})),
+    {}
+  );
+  return {
+    accountNum: c.accountNum, traderName: c.traderName,
+    statDate: c.statDate, currency: c.currency,
+    winCount, lossCount,
+    trades: syntheticTrades,
+    summary: c.summary,
+    equityCurve: c.eq.map(([ts,val])=>({date: ts ? new Date(ts) : null, val})),
+    days: c.days.map(d=>({date:d.date, trades:{length:d.n}, gProfit:d.gP, gLoss:d.gL, commission:d.c, swap:d.s, net:d.net, running:d.run})),
+    weeks: c.weeks.map(w=>({key:w.key, weekStart:w.ws?new Date(w.ws):null, weekEnd:w.we?new Date(w.we):null, trades:{length:w.n}, wins:w.wins, gProfit:w.gP, gLoss:w.gL, commission:w.c, swap:w.s, net:w.net})),
+    months: c.months.map(m=>({key:m.key, label:m.label, trades:{length:m.n}, wins:m.wins, gProfit:m.gP, gLoss:m.gL, commission:m.c, swap:m.s, net:m.net})),
+    instruments: c.inst.map(i=>({sym:i.sym, trades:{length:i.n}, wins:i.wins, gProfit:i.gP, gLoss:i.gL, commission:i.c, net:i.net}))
+  };
+}
+
+function tryLoadSaved() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) { show('noDataPlaceholder'); return; }
+    const compact = JSON.parse(raw);
+    const data = fromCompact(compact);
+    renderDashboard(data, compact.filename);
+  } catch(e) {
+    console.warn('[Scalper] Load failed, clearing:', e);
+    localStorage.removeItem(LS_KEY);
+    show('noDataPlaceholder');
+  }
+}
+
+function showUpload() {
+  document.getElementById('uploadBanner').style.display='block';
+  document.getElementById('traderUpdateBtn').style.display='none';
+}
+
+function clearSaved() {
+  if(!confirm('Clear saved statement? Charts will be hidden for all users until you re-upload.')) return;
+  localStorage.removeItem(LS_KEY);
+  document.getElementById('chartsSection').style.display='none';
+  document.getElementById('heroStats').style.display='none';
+  document.getElementById('uploadBanner').style.display='block';
+  document.getElementById('traderUpdateBtn').style.display='none';
+  banner.classList.remove('loaded');
+}
 
 function loadFile(file){
   const r=new FileReader();
@@ -895,20 +1011,26 @@ function parseMT4(html){
 // ═══════════════════════════════════════════════════════
 function renderDashboard(data,filename){
   const s=data.summary;
-  const trades=data.trades;
+  const trades=data.trades||[];
 
-  // Banner update
+  // Persist to localStorage so all users see the charts
+  saveCompact(data,filename);
+
+  // Banner update (only visible to trader)
   banner.classList.add('loaded');
-  banner.querySelector('h3').textContent='✓ '+filename;
-  banner.querySelectorAll('p')[0].textContent=
-    `${data.trades.length} trades · ${data.weeks.length} weeks · ${data.months.length} months · Account #${data.accountNum} · ${data.traderName}`;
-  banner.querySelectorAll('p')[1].textContent='';
+  if(banner.querySelector('h3')) banner.querySelector('h3').textContent='✓ '+(filename||'Statement loaded');
+  const ps=banner.querySelectorAll('p');
+  if(ps[0]) ps[0].textContent=`${trades.length} trades · ${data.weeks.length} weeks · ${data.months.length} months · Account #${data.accountNum} · ${data.traderName}`;
+  if(ps[1]) ps[1].textContent='';
+  // Show the Update / Clear buttons, hide the drop zone
+  document.getElementById('uploadBanner').style.display='none';
+  document.getElementById('traderUpdateBtn').style.display='block';
 
   // Hero stats
   show('heroStats'); show('chartsSection');
 
-  const winCount=trades.filter(t=>t.profit>0).length;
-  const lossCount=trades.filter(t=>t.profit<0).length;
+  const winCount  = (data.winCount  !== undefined) ? data.winCount  : trades.filter(t=>t.profit>0).length;
+  const lossCount = (data.lossCount !== undefined) ? data.lossCount : trades.filter(t=>t.profit<0).length;
   const winRate=trades.length>0?(winCount/trades.length*100):0;
   const avgWin=winCount>0?(s.grossProfit/winCount):0;
   const avgLoss=lossCount>0?(Math.abs(s.grossLoss)/lossCount):0;
@@ -1386,6 +1508,9 @@ function fU(raw){return(Number(raw)/1e6).toFixed(2);}
 Chart.defaults.color='#4a5568';
 Chart.defaults.borderColor='rgba(255,255,255,0.04)';
 Chart.defaults.font.family='JetBrains Mono';
+
+// Auto-load saved statement on every page open (works for all users)
+tryLoadSaved();
 </script>
 </body>
 </html>
