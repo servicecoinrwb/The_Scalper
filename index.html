@@ -322,9 +322,16 @@ textarea{resize:vertical;min-height:60px}
       <p>Drop your <span>DetailedStatement.htm</span> to update the dashboard</p>
       <p style="margin-top:6px;font-size:10px">Parsed in your browser · never uploaded · auto-saved for all users</p>
     </div>
-    <div id="traderUpdateBtn" style="display:none;text-align:right;margin-top:8px">
-      <button class="btn btn-ghost" style="width:auto;padding:6px 16px;font-size:9px;display:inline-block" onclick="showUpload()">↑ Update Statement</button>
-      <button class="btn btn-red"   style="width:auto;padding:6px 16px;font-size:9px;display:inline-block;margin-left:6px" onclick="clearSaved()">Clear Saved Data</button>
+    <div id="traderUpdateBtn" style="display:none;margin-top:10px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="btn btn-ghost" style="width:auto;padding:7px 16px;font-size:10px;display:inline-block" onclick="showUpload()">↑ Update Statement</button>
+        <button class="btn btn-green" style="width:auto;padding:7px 16px;font-size:10px;display:inline-block" onclick="publishDataFile()">📤 Publish Data File</button>
+        <button class="btn btn-red"   style="width:auto;padding:7px 16px;font-size:10px;display:inline-block" onclick="clearSaved()">Clear</button>
+      </div>
+      <div class="alert" id="publishAlert" style="margin-top:8px"></div>
+      <div style="margin-top:8px;font-size:10px;color:var(--muted);line-height:1.6;border-left:2px solid var(--border);padding-left:10px">
+        <strong style="color:var(--text2)">How to share with users:</strong> Click <em>Publish Data File</em> → download <code>scalper-data.json</code> → commit it to the same folder as this HTML in your GitHub repo. All users see the charts on their next visit — no wallet required.
+      </div>
     </div>
   </div>
 
@@ -333,7 +340,7 @@ textarea{resize:vertical;min-height:60px}
     <div style="border:1px solid var(--border);padding:40px;text-align:center;margin:24px 0;background:var(--bg2)">
       <div style="font-size:28px;margin-bottom:12px">📈</div>
       <div style="font-family:var(--brand);font-size:22px;letter-spacing:.06em;color:var(--text2);margin-bottom:8px">Performance data loading</div>
-      <div style="font-size:11px;color:var(--muted)">The trader publishes weekly stats here after each session.</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.6">The trader publishes performance data after each session.<br>If you're the trader, connect your wallet to upload the MT4 statement.</div>
     </div>
   </div>
 
@@ -831,23 +838,45 @@ function fromCompact(c) {
   };
 }
 
-function tryLoadSaved() {
-  // Runs at boot BEFORE wallet connect — roles unknown.
-  // If data exists: render charts + week picker for everyone immediately.
-  // Placeholder / upload zone shown later by refreshW3() once role is known.
+async function tryLoadSaved() {
+  // Strategy:
+  //   1. Try localStorage  (instant — trader's own session)
+  //   2. Try fetching scalper-data.json from same origin (everyone else)
+  // Charts are shown for ALL users as long as either source has data.
+
+  // ── 1. localStorage (trader's browser, or cached from previous session) ──
   try {
     const raw = localStorage.getItem(LS_KEY);
-    if (!raw) return; // No data yet — refreshW3 will handle placeholders
-    const compact = JSON.parse(raw);
-    const data = fromCompact(compact);
-    renderDashboard(data, compact.filename);
-    // Show week picker for everyone at boot (Use buttons start hidden,
-    // refreshW3 reveals them for traders after connect)
-    show('mt4WeekPicker');
+    if (raw) {
+      const compact = JSON.parse(raw);
+      renderDashboard(fromCompact(compact), compact.filename);
+      show('mt4WeekPicker');
+      console.log('[Scalper] Loaded from localStorage');
+      return; // Done — no need to fetch
+    }
   } catch(e) {
-    console.warn('[Scalper] Load failed, clearing:', e);
+    console.warn('[Scalper] localStorage load failed:', e);
     localStorage.removeItem(LS_KEY);
   }
+
+  // ── 2. Fetch scalper-data.json from the same directory ───────────────────
+  // Trader publishes this file to the repo so all users can see the charts.
+  try {
+    const res = await fetch('./scalper-data.json', { cache: 'no-cache' });
+    if (res.ok) {
+      const compact = await res.json();
+      // Also store locally so subsequent loads are instant
+      try { localStorage.setItem(LS_KEY, JSON.stringify(compact)); } catch(_){}
+      renderDashboard(fromCompact(compact), compact.filename);
+      show('mt4WeekPicker');
+      console.log('[Scalper] Loaded from scalper-data.json');
+    } else {
+      console.log('[Scalper] No data file found — waiting for trader to publish');
+    }
+  } catch(e) {
+    console.log('[Scalper] Could not fetch scalper-data.json:', e.message);
+  }
+  // If both fail: refreshW3() will show the appropriate placeholder after connect
 }
 
 function showUpload() {
@@ -855,8 +884,23 @@ function showUpload() {
   document.getElementById('traderUpdateBtn').style.display='none';
 }
 
+function publishDataFile() {
+  const raw = localStorage.getItem(LS_KEY);
+  if (!raw) return alert('No data to publish. Upload an MT4 statement first.');
+  const blob = new Blob([raw], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'scalper-data.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+  sa('publishAlert','ok',
+    '✓ scalper-data.json downloaded. Commit this file to the same folder as The_Scalper HTML file in your repo — all users will see the charts on their next page load.');
+}
+
 function clearSaved() {
-  if(!confirm('Clear saved statement? Charts will be hidden for all users until you re-upload.')) return;
+  if(!confirm('Clear saved statement? Charts will be hidden for all users until you publish a new data file.')) return;
   localStorage.removeItem(LS_KEY);
   document.getElementById('chartsSection').style.display='none';
   document.getElementById('heroStats').style.display='none';
