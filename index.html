@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>THE SCALPER · Precision Trading Fund</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@300;400;500;700&family=DM+Serif+Display:ital@1&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.1/ethers.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:     #07090d;
+  --bg2:    #0d1117;
+  --bg3:    #121820;
+  --bg4:    #1a2333;
+  --border: #1e2d3d;
+  --border2:#253347;
+  --green:  #00d47c;
+  --green2: #00ff9d;
+  --red:    #f03e3e;
+  --amber:  #f59f00;
+  --blue:   #4dabf7;
+  --muted:  #4a5568;
+  --dim:    #2d3748;
+  --text:   #c9d1d9;
+  --text2:  #8b949e;
+  --mono:   'JetBrains Mono', monospace;
+  --brand:  'Bebas Neue', sans-serif;
+  --serif:  'DM Serif Display', serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:12px;min-height:100vh;overflow-x:hidden}
+
+/* ─── Scanline overlay ─────────────────── */
+body::after{
+  content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,rgba(0,212,124,.012) 0px,rgba(0,212,124,.012) 1px,transparent 1px,transparent 3px);
+  pointer-events:none;z-index:9999
+}
+
+/* ─── Layout ───────────────────────────── */
+.wrap{max-width:1280px;margin:0 auto;padding:0 24px 80px}
+
+/* ─── Top nav ──────────────────────────── */
+nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;height:56px;
+  background:rgba(7,9,13,.95);
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:100;
+  backdrop-filter:blur(12px)
+}
+.nav-brand{display:flex;align-items:baseline;gap:10px}
+.nav-brand .logo{font-family:var(--brand);font-size:26px;letter-spacing:.04em;color:var(--green2);line-height:1}
+.nav-brand .logo span{color:var(--text2);font-size:22px}
+.nav-brand .tagline{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.nav-right{display:flex;align-items:center;gap:12px}
+.phase-pill{
+  display:flex;align-items:center;gap:6px;
+  font-size:9px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);border:1px solid var(--border);
+  padding:4px 10px
+}
+.phase-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--muted)}
+.phase-pill.open .dot{background:var(--green);box-shadow:0 0 6px var(--green)}
+.phase-pill.trading .dot{background:var(--amber);box-shadow:0 0 6px var(--amber)}
+.phase-pill.returning .dot{background:var(--blue);box-shadow:0 0 6px var(--blue)}
+#connectBtn{
+  background:transparent;border:1px solid var(--green);
+  color:var(--green);font-family:var(--mono);font-size:10px;
+  letter-spacing:.1em;text-transform:uppercase;padding:7px 16px;cursor:pointer;
+  transition:all .2s
+}
+#connectBtn:hover{background:var(--green);color:var(--bg)}
+#connectBtn.on{border-color:var(--green2);color:var(--green2)}
+
+/* ─── Hero ─────────────────────────────── */
+.hero{
+  padding:40px 0 32px;
+  border-bottom:1px solid var(--border)
+}
+.hero-brand{margin-bottom:24px}
+.hero-brand h1{
+  font-family:var(--brand);font-size:72px;letter-spacing:.06em;
+  line-height:.9;color:var(--green2);
+  text-shadow:0 0 40px rgba(0,255,157,.15)
+}
+.hero-brand h1 em{color:var(--text2);font-style:normal;font-size:60px}
+.hero-brand p{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+
+/* ─── Upload banner (shown before parse) ─ */
+#uploadBanner{
+  border:1px dashed var(--border2);
+  background:linear-gradient(135deg,rgba(0,212,124,.03),rgba(7,9,13,0));
+  padding:40px;text-align:center;cursor:pointer;position:relative;
+  transition:border-color .2s,background .2s;
+  margin:24px 0
+}
+#uploadBanner:hover,#uploadBanner.over{border-color:var(--green);background:rgba(0,212,124,.05)}
+#uploadBanner input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+#uploadBanner .up-icon{font-size:36px;margin-bottom:12px}
+#uploadBanner h3{font-family:var(--brand);font-size:28px;letter-spacing:.08em;color:var(--text);margin-bottom:8px}
+#uploadBanner p{font-size:11px;color:var(--muted);letter-spacing:.06em}
+#uploadBanner p span{color:var(--green)}
+#uploadBanner.loaded{border-color:var(--green);border-style:solid;background:rgba(0,212,124,.04)}
+
+/* ─── Stat cards ────────────────────────── */
+.stat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:2px}
+.stat-grid.four{grid-template-columns:repeat(4,1fr)}
+.stat-card{background:var(--bg2);padding:16px 18px}
+.stat-card .sc-label{font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.stat-card .sc-val{font-size:22px;font-weight:700;color:var(--text);line-height:1}
+.stat-card .sc-val.green{color:var(--green)}
+.stat-card .sc-val.red{color:var(--red)}
+.stat-card .sc-val.amber{color:var(--amber)}
+.stat-card .sc-sub{font-size:10px;color:var(--muted);margin-top:4px}
+
+/* ─── Chart containers ──────────────────── */
+.chart-wrap{
+  background:var(--bg2);border:1px solid var(--border);
+  padding:20px;margin-bottom:24px
+}
+.chart-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;padding-bottom:12px;
+  border-bottom:1px solid var(--border)
+}
+.chart-title{
+  font-family:var(--brand);font-size:18px;letter-spacing:.06em;color:var(--text)
+}
+.chart-sub{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.chart-badges{display:flex;gap:8px;align-items:center}
+.badge{
+  font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  padding:3px 9px;border:1px solid var(--border);color:var(--muted)
+}
+.badge.green{border-color:rgba(0,212,124,.4);color:var(--green);background:rgba(0,212,124,.08)}
+.badge.red{border-color:rgba(240,62,62,.4);color:var(--red);background:rgba(240,62,62,.08)}
+.chart-inner{position:relative;height:260px}
+.chart-inner.tall{height:340px}
+
+/* ─── Performance tabs ──────────────────── */
+.perf-section{margin-bottom:32px}
+.tab-bar{display:flex;gap:0;border:1px solid var(--border);margin-bottom:0;border-bottom:none}
+.tab{
+  flex:1;text-align:center;padding:10px;
+  font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);cursor:pointer;border-right:1px solid var(--border);
+  transition:all .2s
+}
+.tab:last-child{border-right:none}
+.tab.active{background:rgba(0,212,124,.08);color:var(--green);font-weight:700}
+.tab:hover:not(.active){background:rgba(255,255,255,.02);color:var(--text2)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ─── Performance table ─────────────────── */
+.perf-table-wrap{
+  background:var(--bg2);border:1px solid var(--border);
+  border-top:none;max-height:280px;overflow-y:auto
+}
+.perf-table-wrap::-webkit-scrollbar{width:4px}
+.perf-table-wrap::-webkit-scrollbar-track{background:var(--bg)}
+.perf-table-wrap::-webkit-scrollbar-thumb{background:var(--border2)}
+.pt{width:100%;border-collapse:collapse}
+.pt th{
+  position:sticky;top:0;background:var(--bg3);
+  font-size:8px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);padding:8px 14px;
+  border-bottom:1px solid var(--border);text-align:right
+}
+.pt th:first-child{text-align:left}
+.pt td{
+  padding:8px 14px;border-bottom:1px solid var(--border);
+  text-align:right;font-size:11px
+}
+.pt td:first-child{text-align:left;color:var(--text2)}
+.pt tr:last-child td{border-bottom:none}
+.pt tr:hover td{background:rgba(255,255,255,.02)}
+.pnl-bar{
+  display:inline-block;height:10px;vertical-align:middle;
+  margin-right:6px;min-width:2px
+}
+
+/* ─── Instruments grid ──────────────────── */
+.inst-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:24px}
+.inst-card{background:var(--bg2);padding:18px}
+.inst-card .ic-sym{font-family:var(--brand);font-size:20px;letter-spacing:.06em;color:var(--text);margin-bottom:8px}
+.inst-card .ic-sym span{font-size:11px;color:var(--muted);font-family:var(--mono)}
+
+/* ─── Section divider ───────────────────── */
+.sec-divider{
+  display:flex;align-items:center;gap:16px;
+  font-size:9px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--muted);margin:32px 0 24px
+}
+.sec-divider::before,.sec-divider::after{
+  content:'';flex:1;height:1px;background:var(--border)
+}
+
+/* ─── Phase bar (web3) ──────────────────── */
+.phase-bar{display:flex;border:1px solid var(--border);margin-bottom:24px;overflow:hidden}
+.ps{
+  flex:1;text-align:center;padding:10px;
+  font-size:9px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);border-right:1px solid var(--border);transition:all .4s
+}
+.ps:last-child{border-right:none}
+.ps.active{background:rgba(0,212,124,.08);color:var(--green);font-weight:700}
+.ps.done{color:var(--green)}
+
+/* ─── Pool stats ────────────────────────── */
+.pool-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:24px}
+
+/* ─── Panels ────────────────────────────── */
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);margin-bottom:24px}
+.panels.three{grid-template-columns:1fr 1fr 1fr}
+.panels.one{grid-template-columns:1fr;background:transparent;gap:0}
+.panel{background:var(--bg2);padding:22px}
+.panel h3{
+  font-family:var(--brand);font-size:18px;letter-spacing:.06em;
+  color:var(--text);margin-bottom:14px;padding-bottom:12px;
+  border-bottom:1px solid var(--border)
+}
+
+/* ─── Form ──────────────────────────────── */
+.fl{display:block;font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;margin-top:14px}
+input[type=text],input[type=number],textarea{
+  width:100%;background:var(--bg);border:1px solid var(--border);
+  color:var(--text);font-family:var(--mono);font-size:11px;
+  padding:9px 12px;outline:none;transition:border-color .2s
+}
+input:focus,textarea:focus{border-color:var(--green)}
+textarea{resize:vertical;min-height:60px}
+.btn{
+  display:block;width:100%;margin-top:10px;padding:10px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;cursor:pointer;border:none;
+  transition:opacity .2s,transform .1s
+}
+.btn:hover{opacity:.85}.btn:active{transform:scale(.98)}.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn-green{background:var(--green);color:var(--bg)}.btn-red{background:var(--red);color:#fff}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-amber{background:var(--amber);color:var(--bg)}.btn-blue{background:var(--blue);color:var(--bg)}
+.btn-sm{width:auto;padding:4px 12px;margin:0;font-size:9px}
+
+/* ─── Alerts ────────────────────────────── */
+.alert{padding:9px 13px;font-size:11px;margin-top:10px;border-left:2px solid;display:none;line-height:1.5}
+.alert.show{display:block}
+.alert.info{border-color:var(--green);background:rgba(0,212,124,.06);color:var(--green)}
+.alert.ok{border-color:var(--green2);background:rgba(0,255,157,.05);color:var(--green2)}
+.alert.err{border-color:var(--red);background:rgba(240,62,62,.06);color:var(--red)}
+
+/* ─── MT4 week table ────────────────────── */
+.mt4-table-wrap{max-height:260px;overflow-y:auto;border:1px solid var(--border);margin-top:16px}
+.mt4-table-wrap::-webkit-scrollbar{width:4px}
+.mt4-table-wrap::-webkit-scrollbar-thumb{background:var(--border2)}
+.mt4t{width:100%;border-collapse:collapse;font-size:11px}
+.mt4t th{background:var(--bg3);font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:7px 10px;border-bottom:1px solid var(--border);text-align:right;position:sticky;top:0}
+.mt4t th:first-child{text-align:left}
+.mt4t td{padding:7px 10px;border-bottom:1px solid var(--border);text-align:right}
+.mt4t td:first-child{text-align:left}
+.mt4t tr:hover td{background:rgba(255,255,255,.02)}
+.mt4t tr.sel td{background:rgba(0,212,124,.06)!important}
+.mt4t tr:last-child td{border-bottom:none}
+
+/* ─── Misc ──────────────────────────────── */
+.pp{color:var(--green)}.pn{color:var(--red)}.pa{color:var(--amber)}
+.wl-chip{display:inline-block;font-size:10px;padding:2px 8px;background:rgba(0,212,124,.1);border:1px solid rgba(0,212,124,.25);color:var(--green);margin:3px 3px 3px 0}
+.role-badge{display:inline-block;font-size:8px;letter-spacing:.12em;text-transform:uppercase;padding:3px 10px;border:1px solid currentColor;margin-bottom:10px;margin-right:8px}
+.rb-owner{color:var(--amber)}.rb-trader{color:var(--green)}.rb-user{color:var(--muted)}
+.spin{display:inline-block;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.pulsing{animation:pulse 1.8s ease-in-out infinite}
+.fill-badge{display:inline-block;background:rgba(0,212,124,.12);border:1px solid rgba(0,212,124,.3);color:var(--green);font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;margin-left:8px;vertical-align:middle}
+@media(max-width:768px){
+  .stat-grid{grid-template-columns:repeat(3,1fr)}
+  .stat-grid.four{grid-template-columns:repeat(2,1fr)}
+  .panels,.panels.three{grid-template-columns:1fr}
+  .inst-grid{grid-template-columns:1fr}
+  .pool-grid{grid-template-columns:repeat(2,1fr)}
+  .hero-brand h1{font-size:48px}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     TOP NAV
+═══════════════════════════════════════ -->
+<nav>
+  <div class="nav-brand">
+    <div class="logo">THE <span>SCALPER</span></div>
+    <div class="tagline">Precision Trading Fund · Blaze Markets</div>
+  </div>
+  <div class="nav-right">
+    <div class="phase-pill open" id="phasePill">
+      <span class="dot"></span>
+      <span id="phaseLabel">—</span>
+    </div>
+    <div style="font-size:10px;color:var(--muted)" id="addrTag">Not connected</div>
+    <button id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
+  </div>
+</nav>
+
+<div class="wrap">
+
+<!-- ═══════════════════════════════════════
+     HERO
+═══════════════════════════════════════ -->
+<div class="hero">
+  <div class="hero-brand">
+    <h1>THE <em>SCALPER</em></h1>
+    <p>Precision Scalp Trading Fund · Account #85102836 · Blaze Markets Limited · Ethereum Mainnet</p>
+  </div>
+
+  <!-- Upload banner -->
+  <div id="uploadBanner">
+    <input type="file" id="mt4File" accept=".htm,.html" onchange="handleFile(event)"/>
+    <div class="up-icon">📊</div>
+    <h3>Load MT4 Statement</h3>
+    <p>Drop your <span>DetailedStatement.htm</span> to activate the trading dashboard</p>
+    <p style="margin-top:6px;font-size:10px">Parsed entirely in your browser — never uploaded to any server</p>
+  </div>
+
+  <!-- Hero stats (hidden until parsed) -->
+  <div id="heroStats" style="display:none">
+    <div class="stat-grid" id="mainStats">
+      <div class="stat-card"><div class="sc-label">Account Balance</div><div class="sc-val" id="sBalance">—</div><div class="sc-sub" id="sBalSub">—</div></div>
+      <div class="stat-card"><div class="sc-label">Net P&L (All Time)</div><div class="sc-val green" id="sNetPnl">—</div><div class="sc-sub" id="sPnlSub">—</div></div>
+      <div class="stat-card"><div class="sc-label">Win Rate</div><div class="sc-val" id="sWinRate">—</div><div class="sc-sub" id="sWrSub">—</div></div>
+      <div class="stat-card"><div class="sc-label">Profit Factor</div><div class="sc-val amber" id="sPF">—</div><div class="sc-sub">Gross profit ÷ gross loss</div></div>
+      <div class="stat-card"><div class="sc-label">Total Trades</div><div class="sc-val" id="sTrades">—</div><div class="sc-sub" id="sTradesSub">—</div></div>
+      <div class="stat-card"><div class="sc-label">Avg Win / Avg Loss</div><div class="sc-val" id="sAvgWL">—</div><div class="sc-sub" id="sAvgSub">—</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     CHARTS (hidden until parsed)
+═══════════════════════════════════════ -->
+<div id="chartsSection" style="display:none">
+
+  <!-- Equity curve -->
+  <div class="chart-wrap" style="margin-top:24px">
+    <div class="chart-header">
+      <div>
+        <div class="chart-title">Equity Curve</div>
+        <div class="chart-sub">Cumulative P&L · Trade-by-trade · All positions closed</div>
+      </div>
+      <div class="chart-badges">
+        <span class="badge green" id="ecPeak">Peak: —</span>
+        <span class="badge red"   id="ecDD">Max DD: —</span>
+        <span class="badge"       id="ecPeriod">Period: —</span>
+      </div>
+    </div>
+    <div class="chart-inner tall">
+      <canvas id="equityChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Performance tabs -->
+  <div class="perf-section">
+    <div class="tab-bar">
+      <div class="tab active" onclick="switchTab('daily',this)">Daily</div>
+      <div class="tab" onclick="switchTab('weekly',this)">Weekly</div>
+      <div class="tab" onclick="switchTab('monthly',this)">Monthly</div>
+    </div>
+
+    <div class="tab-panel active" id="tab-daily">
+      <div class="chart-wrap" style="border-top:none">
+        <div class="chart-header">
+          <div><div class="chart-title">Daily P&L</div><div class="chart-sub">Net profit per trading day</div></div>
+          <div class="chart-badges">
+            <span class="badge green" id="dBestDay">Best: —</span>
+            <span class="badge red"   id="dWorstDay">Worst: —</span>
+          </div>
+        </div>
+        <div class="chart-inner"><canvas id="dailyChart"></canvas></div>
+      </div>
+      <div class="perf-table-wrap">
+        <table class="pt"><thead><tr>
+          <th>Date</th><th>Trades</th><th>Gross Profit</th><th>Gross Loss</th><th>Commission</th><th>Net P&L</th><th>Running Total</th>
+        </tr></thead><tbody id="dailyBody"></tbody></table>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-weekly">
+      <div class="chart-wrap" style="border-top:none">
+        <div class="chart-header">
+          <div><div class="chart-title">Weekly P&L</div><div class="chart-sub">Net profit per ISO week</div></div>
+          <div class="chart-badges">
+            <span class="badge green" id="wBestWeek">Best: —</span>
+            <span class="badge red"   id="wWorstWeek">Worst: —</span>
+          </div>
+        </div>
+        <div class="chart-inner"><canvas id="weeklyChart"></canvas></div>
+      </div>
+      <div class="perf-table-wrap">
+        <table class="pt"><thead><tr>
+          <th>Week</th><th>Dates</th><th>Trades</th><th>Gross Profit</th><th>Gross Loss</th><th>Commission</th><th>Net P&L</th>
+        </tr></thead><tbody id="weeklyBody"></tbody></table>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-monthly">
+      <div class="chart-wrap" style="border-top:none">
+        <div class="chart-header">
+          <div><div class="chart-title">Monthly P&L</div><div class="chart-sub">Net profit per calendar month</div></div>
+          <div class="chart-badges">
+            <span class="badge green" id="mBestMonth">Best: —</span>
+            <span class="badge red"   id="mWorstMonth">Worst: —</span>
+          </div>
+        </div>
+        <div class="chart-inner"><canvas id="monthlyChart"></canvas></div>
+      </div>
+      <div class="perf-table-wrap">
+        <table class="pt"><thead><tr>
+          <th>Month</th><th>Trades</th><th>Gross Profit</th><th>Gross Loss</th><th>Commission</th><th>Net P&L</th><th>Win Rate</th>
+        </tr></thead><tbody id="monthlyBody"></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Instrument breakdown -->
+  <div class="sec-divider">Instruments</div>
+  <div class="inst-grid" id="instGrid"></div>
+
+  <!-- MT4 week selector (for trader log submission) -->
+  <div id="mt4WeekPicker" style="display:none">
+    <div class="sec-divider">MT4 Log Submission</div>
+    <div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">
+      Select a week to auto-fill the log submission form below
+    </div>
+    <div class="mt4-table-wrap">
+      <table class="mt4t">
+        <thead><tr>
+          <th>Week</th><th>Dates</th><th>Trades</th><th>Net P&L</th><th>Gross Profit</th><th>Gross Loss</th><th>Commission</th><th></th>
+        </tr></thead>
+        <tbody id="mt4WeekBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /chartsSection -->
+
+<!-- ═══════════════════════════════════════
+     WEB3 FUND SECTION
+═══════════════════════════════════════ -->
+<div class="sec-divider">On-Chain Fund</div>
+<div id="notConnected" class="alert info show">Connect MetaMask to interact with the smart contract fund.</div>
+
+<div id="web3UI" style="display:none">
+  <!-- Role row -->
+  <div style="margin-bottom:20px">
+    <span id="roleBadge" class="role-badge rb-user">Participant</span>
+    <span id="roleDesc" style="font-size:11px;color:var(--muted)"></span>
+  </div>
+
+  <!-- Phase bar -->
+  <div class="phase-bar">
+    <div class="ps active pulsing" id="ps-OPEN">① Open — Accepting Deposits</div>
+    <div class="ps" id="ps-TRADING">② Trading — Funds at Blaze</div>
+    <div class="ps" id="ps-RETURNING">③ Returning — Withdraw Available</div>
+  </div>
+
+  <!-- Pool stats -->
+  <div class="pool-grid stat-grid four" style="margin-bottom:24px">
+    <div class="stat-card"><div class="sc-label">Pool ETH</div><div class="sc-val" id="sEth">—</div></div>
+    <div class="stat-card"><div class="sc-label">Pool USDT</div><div class="sc-val" id="sUsdt">—</div></div>
+    <div class="stat-card"><div class="sc-label">Depositors</div><div class="sc-val" id="sDeps">—</div></div>
+    <div class="stat-card"><div class="sc-label">Phase</div><div class="sc-val" id="sPhase">—</div></div>
+  </div>
+
+  <!-- Depositor section -->
+  <div id="depositorSection" style="display:none">
+    <div class="panels">
+      <div class="panel" data-label="ETH">
+        <h3>Deposit ETH</h3>
+        <label class="fl">Amount (ETH)</label>
+        <input type="number" id="ethAmount" placeholder="0.0" min="0" step="0.001"/>
+        <div id="ethBal" style="font-size:10px;color:var(--muted);margin-top:5px">Wallet: —</div>
+        <button class="btn btn-green" onclick="depositETH()">Deposit ETH</button>
+        <div class="alert" id="ethAlert"></div>
+      </div>
+      <div class="panel">
+        <h3>Deposit USDT</h3>
+        <label class="fl">Amount (USDT)</label>
+        <input type="number" id="usdtAmount" placeholder="0.00" min="0" step="1"/>
+        <div id="usdtBal" style="font-size:10px;color:var(--muted);margin-top:5px">Wallet: —</div>
+        <button class="btn btn-ghost" onclick="approveUSDT()" style="margin-top:12px">1. Approve USDT</button>
+        <button class="btn btn-green" onclick="depositUSDT()">2. Deposit USDT</button>
+        <div class="alert" id="usdtAlert"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- My position -->
+  <div id="positionSection" style="display:none">
+    <div class="stat-grid four" style="margin-bottom:16px">
+      <div class="stat-card"><div class="sc-label">My ETH Deposited</div><div class="sc-val" id="myEth">—</div></div>
+      <div class="stat-card"><div class="sc-label">My USDT Deposited</div><div class="sc-val" id="myUsdt">—</div></div>
+      <div class="stat-card"><div class="sc-label">Pending ETH Return</div><div class="sc-val green" id="myRetEth">—</div></div>
+      <div class="stat-card"><div class="sc-label">Pending USDT Return</div><div class="sc-val green" id="myRetUsdt">—</div></div>
+    </div>
+    <div id="withdrawSection" style="display:none;margin-bottom:24px">
+      <button class="btn btn-green" style="max-width:280px" onclick="withdraw()">Withdraw Returns</button>
+      <div class="alert" id="withdrawAlert"></div>
+    </div>
+  </div>
+
+  <!-- Owner section -->
+  <div id="ownerSection" style="display:none">
+    <div class="panels three" style="background:var(--border)">
+      <div class="panel">
+        <h3>Whitelist</h3>
+        <label class="fl">Addresses (one per line)</label>
+        <textarea id="wlAddresses" placeholder="0xAbc...&#10;0xDef..."></textarea>
+        <button class="btn btn-green" onclick="addWhitelist()">Add to Whitelist</button>
+        <button class="btn btn-red" onclick="removeWhitelist()" style="margin-top:6px">Remove</button>
+        <div class="alert" id="wlAlert"></div>
+        <div id="wlChips" style="margin-top:12px"></div>
+      </div>
+      <div class="panel">
+        <h3>Fund Control</h3>
+        <p style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:10px">Withdraw all pooled funds to your wallet for Blaze Markets. Snapshots proportional shares.</p>
+        <button class="btn btn-amber" onclick="withdrawToTrading()">Withdraw Pool → Blaze</button>
+        <div class="alert" id="fundAlert"></div>
+        <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+          <p style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:10px">After distribution, reset for new deposits.</p>
+          <button class="btn btn-ghost" onclick="resetCycle()">Reset Cycle</button>
+          <div class="alert" id="resetAlert"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Trader Role</h3>
+        <p style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:4px">Assign trader wallet (or leave as owner).</p>
+        <label class="fl">Trader Address</label>
+        <input type="text" id="traderAddr" placeholder="0x..."/>
+        <button class="btn btn-ghost" onclick="setTrader()">Update Trader</button>
+        <div class="alert" id="traderAlert"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trader section -->
+  <div id="traderSection" style="display:none">
+    <div class="panels" style="background:var(--border)">
+      <div class="panel">
+        <h3>Submit Trading Log <span id="parsedBadge" style="display:none" class="fill-badge">MT4 Auto-filled</span></h3>
+        <p style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:4px">Load statement above and click <em style="color:var(--green)">Use ↓</em> on a week, or fill manually.</p>
+        <label class="fl">Reference</label>
+        <input type="text" id="logRef" placeholder="Blaze-85102836-2026-W04-Devon-Miles"/>
+        <label class="fl">Net P&L (USD, signed)</label>
+        <input type="number" id="logPnl" placeholder="4200.50"/>
+        <label class="fl">Period</label>
+        <input type="text" id="logPeriod" placeholder="auto-filled" readonly style="color:var(--muted);cursor:default"/>
+        <button class="btn btn-green" onclick="submitLog()">Submit On-Chain</button>
+        <div class="alert" id="logAlert"></div>
+      </div>
+      <div class="panel">
+        <h3>Deposit Returns</h3>
+        <label class="fl">USDT Return Amount</label>
+        <input type="number" id="returnUsdtAmt" placeholder="0.00"/>
+        <button class="btn btn-ghost" onclick="approveReturnUSDT()" style="margin-top:10px">1. Approve USDT</button>
+        <button class="btn btn-ghost" onclick="depositReturnUSDT()" style="margin-top:6px">2. Send USDT to Contract</button>
+        <label class="fl" style="margin-top:14px">ETH Return (optional)</label>
+        <input type="number" id="returnEthAmt" placeholder="0.0"/>
+        <button class="btn btn-green" onclick="depositReturns()">3. Finalize + Distribute</button>
+        <div class="alert" id="returnAlert"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- On-chain log history -->
+  <div id="logSection" style="display:none;margin-top:24px">
+    <div class="chart-wrap" style="padding:16px">
+      <div class="chart-header" style="margin-bottom:12px;padding-bottom:10px">
+        <div><div class="chart-title">On-Chain Log History</div></div>
+      </div>
+      <table class="pt">
+        <thead><tr><th style="text-align:left">#</th><th style="text-align:left">Submitted</th><th style="text-align:left">Reference</th><th>P&L (USD)</th></tr></thead>
+        <tbody id="logBody"><tr><td colspan="4" style="color:var(--muted);padding:14px">No logs submitted yet.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script>
+// ═══════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════
+const CONTRACT_ADDRESS = '0xFff69A755ab56AFba705D0a408FD2daae19931D0';
+const ABI = [{"inputs":[{"internalType":"address","name":"_trader","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[],"name":"CycleReset","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint256","name":"ethAmount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"usdtAmount","type":"uint256"}],"name":"Deposited","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":false,"internalType":"uint256","name":"ethAmount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"usdtAmount","type":"uint256"}],"name":"EmergencyWithdraw","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":false,"internalType":"uint256","name":"ethAmount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"usdtAmount","type":"uint256"}],"name":"FundsWithdrawnToTrading","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"bool","name":"status","type":"bool"}],"name":"Paused","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"by","type":"address"},{"indexed":false,"internalType":"uint256","name":"ethAmount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"usdtAmount","type":"uint256"}],"name":"ReturnsDeposited","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"totalEth","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"totalUsdt","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"recipients","type":"uint256"}],"name":"ReturnsDistributed","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"snapshotEth","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"snapshotUsdt","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"depositors","type":"uint256"}],"name":"SharesSnapshotted","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"newTrader","type":"address"}],"name":"TraderChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"logIndex","type":"uint256"},{"indexed":false,"internalType":"string","name":"mt4Ref","type":"string"},{"indexed":false,"internalType":"int256","name":"profitUsdt","type":"int256"}],"name":"TradingLogSubmitted","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"uint256","name":"ethAmount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"usdtAmount","type":"uint256"}],"name":"UserWithdrew","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":false,"internalType":"bool","name":"status","type":"bool"}],"name":"Whitelisted","type":"event"},{"inputs":[],"name":"USDT","outputs":[{"internalType":"contract IERC20","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"contractBalances","outputs":[{"internalType":"uint256","name":"eth","type":"uint256"},{"internalType":"uint256","name":"usdt","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"depositETH","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[],"name":"depositReturns","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"depositReturnsUSDT","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"depositUSDT","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"distributeReturnsManually","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"emergencyWithdraw","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"ethDeposited","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"ethShareOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"i","type":"uint256"}],"name":"getDepositor","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getDepositorCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getLatestLog","outputs":[{"components":[{"internalType":"uint256","name":"timestamp","type":"uint256"},{"internalType":"string","name":"mt4Reference","type":"string"},{"internalType":"int256","name":"profitUsdt","type":"int256"},{"internalType":"address","name":"submittedBy","type":"address"}],"internalType":"struct BlazeTradingFund.TradingLog","name":"","type":"tuple"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getTradingLogCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"myPendingReturns","outputs":[{"internalType":"uint256","name":"eth","type":"uint256"},{"internalType":"uint256","name":"usdt","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"paused","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"pendingEthReturn","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"pendingUsdtReturn","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"phase","outputs":[{"internalType":"enum BlazeTradingFund.Phase","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"phaseName","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"resetCycle","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"returnsDistributed","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bool","name":"_paused","type":"bool"}],"name":"setPaused","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_trader","type":"address"}],"name":"setTrader","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address[]","name":"users","type":"address[]"},{"internalType":"bool","name":"status","type":"bool"}],"name":"setWhitelist","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"mt4Reference","type":"string"},{"internalType":"int256","name":"profitUsdt","type":"int256"}],"name":"submitTradingLog","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"totalEthDeposited","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalUsdtDeposited","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"trader","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"tradingLogs","outputs":[{"internalType":"uint256","name":"timestamp","type":"uint256"},{"internalType":"string","name":"mt4Reference","type":"string"},{"internalType":"int256","name":"profitUsdt","type":"int256"},{"internalType":"address","name":"submittedBy","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"usdtDeposited","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"usdtShareOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"whitelist","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"withdraw","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"withdrawFundsToTrading","outputs":[],"stateMutability":"nonpayable","type":"function"},{"stateMutability":"payable","type":"receive"}];
+const USDT_ADDR = '0xdAC17F958D2ee523a2206206994597C13D831ec7';
+const USDT_ABI  = ["function approve(address,uint256) returns (bool)","function balanceOf(address) view returns (uint256)"];
+
+let provider, signer, contract, usdtContract, myAddress;
+let isOwner=false, isTrader=false, isWL=false;
+let equityChartInst=null, dailyChartInst=null, weeklyChartInst=null, monthlyChartInst=null;
+
+// ═══════════════════════════════════════════════════════
+// WALLET
+// ═══════════════════════════════════════════════════════
+async function connectWallet(){
+  if(!window.ethereum) return alert('MetaMask not detected.');
+  try{
+    provider = new ethers.BrowserProvider(window.ethereum);
+    signer   = await provider.getSigner();
+    myAddress= await signer.getAddress();
+    const net= await provider.getNetwork();
+    if(net.chainId!==1n) return alert('Switch to Ethereum Mainnet.');
+    contract    = new ethers.Contract(CONTRACT_ADDRESS,ABI,signer);
+    usdtContract= new ethers.Contract(USDT_ADDR,USDT_ABI,signer);
+    const btn=document.getElementById('connectBtn');
+    btn.textContent=myAddress.slice(0,6)+'…'+myAddress.slice(-4);
+    btn.classList.add('on');
+    document.getElementById('addrTag').textContent=myAddress;
+    document.getElementById('notConnected').classList.remove('show');
+    show('web3UI');
+    await refreshW3();
+    setInterval(refreshW3, 15000);
+  }catch(e){alert('Failed: '+e.message);}
+}
+
+async function refreshW3(){
+  if(!contract){
+    setTxt('sPhase','Deploy contract'); return;
+  }
+  try{
+    const[oA,tA,phN,dC,bals,myED,myUD,rets,rD]=await Promise.all([
+      contract.owner(),contract.trader(),contract.phaseName(),
+      contract.getDepositorCount(),contract.contractBalances(),
+      contract.ethDeposited(myAddress),contract.usdtDeposited(myAddress),
+      contract.myPendingReturns(),contract.returnsDistributed()
+    ]);
+    isOwner =oA.toLowerCase()===myAddress.toLowerCase();
+    isTrader=tA.toLowerCase()===myAddress.toLowerCase()||isOwner;
+    isWL    =await contract.whitelist(myAddress);
+    const ph=phN==='OPEN'?0:phN==='TRADING'?1:2;
+
+    // Nav pill
+    const pill=document.getElementById('phasePill');
+    pill.className='phase-pill '+(ph===0?'open':ph===1?'trading':'returning');
+    setTxt('phaseLabel',phN);
+
+    // Pool stats
+    setTxt('sEth', fE(bals[0])+' ETH');
+    setTxt('sUsdt',fU(bals[1])+' USDT');
+    setTxt('sDeps',dC.toString());
+    setTxt('sPhase',phN);
+
+    // Phase bar
+    ['OPEN','TRADING','RETURNING'].forEach((p,i)=>{
+      const el=document.getElementById('ps-'+p);
+      el.classList.remove('active','pulsing','done');
+      if(i<ph) el.classList.add('done');
+      if(i===ph)el.classList.add('active','pulsing');
+    });
+
+    // Role
+    const rb=document.getElementById('roleBadge'), rd=document.getElementById('roleDesc');
+    if(isOwner){rb.className='role-badge rb-owner';rb.textContent='Owner';rd.textContent='Full control: whitelist, fund management, cycle reset';}
+    else if(isTrader){rb.className='role-badge rb-trader';rb.textContent='Trader';rd.textContent='Submit MT4 logs and deposit returns';}
+    else if(isWL){rb.className='role-badge rb-user';rb.textContent='Whitelisted';rd.textContent='You may deposit ETH or USDT';}
+    else{rb.className='role-badge rb-user';rb.textContent='Not Whitelisted';rd.textContent='Contact the fund owner to be added';}
+
+    // My position
+    show('positionSection');
+    setTxt('myEth',   fE(myED)+' ETH');
+    setTxt('myUsdt',  fU(myUD)+' USDT');
+    setTxt('myRetEth',fE(rets[0])+' ETH');
+    setTxt('myRetUsdt',fU(rets[1])+' USDT');
+    const hasR=rets[0]>0n||rets[1]>0n;
+    document.getElementById('withdrawSection').style.display=(ph===2&&rD&&hasR)?'block':'none';
+
+    // Wallet balances
+    const wb=await provider.getBalance(myAddress);
+    setTxt('ethBal','Wallet: '+fE(wb)+' ETH');
+    const wu=await usdtContract.balanceOf(myAddress);
+    setTxt('usdtBal','Wallet: '+fU(wu)+' USDT');
+
+    // Sections
+    document.getElementById('depositorSection').style.display=(isWL&&ph===0)?'block':'none';
+    document.getElementById('ownerSection').style.display=isOwner?'block':'none';
+    document.getElementById('traderSection').style.display=isTrader?'block':'none';
+    if(isTrader) document.getElementById('mt4WeekPicker').style.display='block';
+    show('logSection');
+
+    // On-chain logs
+    const lc=await contract.getTradingLogCount();
+    const tb=document.getElementById('logBody');
+    tb.innerHTML='';
+    if(lc===0n){tb.innerHTML='<tr><td colspan="4" style="color:var(--muted);padding:12px">No logs yet.</td></tr>';}
+    else{
+      for(let i=Number(lc)-1;i>=0;i--){
+        const l=await contract.tradingLogs(i);
+        const dt=new Date(Number(l[0])*1000).toLocaleDateString();
+        const pnl=Number(l[2])/1e6;
+        tb.innerHTML+=`<tr><td>${i+1}</td><td>${dt}</td><td style="word-break:break-all;font-size:10px">${l[1]}</td><td class="${pnl>=0?'pp':'pn'}" style="text-align:right">${pnl>=0?'+':''}$${pnl.toFixed(2)}</td></tr>`;
+      }
+    }
+  }catch(e){console.error(e);}
+}
+
+// ═══════════════════════════════════════════════════════
+// MT4 PARSER
+// ═══════════════════════════════════════════════════════
+const banner=document.getElementById('uploadBanner');
+banner.addEventListener('dragover',e=>{e.preventDefault();banner.classList.add('over');});
+banner.addEventListener('dragleave',()=>banner.classList.remove('over'));
+banner.addEventListener('drop',e=>{
+  e.preventDefault();banner.classList.remove('over');
+  const f=e.dataTransfer.files[0]; if(f)loadFile(f);
+});
+function handleFile(e){const f=e.target.files[0];if(f)loadFile(f);}
+
+function loadFile(file){
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const data=parseMT4(ev.target.result);
+      window._mt4=data;
+      renderDashboard(data,file.name);
+    }catch(err){alert('Parse error: '+err.message);console.error(err);}
+  };
+  r.readAsText(file);
+}
+
+function parseMT4(html){
+  const doc=new DOMParser().parseFromString(html,'text/html');
+
+  // Account info
+  const title=doc.querySelector('title')?.textContent||'';
+  const tm=title.match(/Statement:\s*(\d+)\s*-\s*(.+)/);
+  const accountNum=tm?tm[1].trim():'?';
+  const traderName=tm?tm[2].trim().replace(/\s+/g,' '):'?';
+  let statDate='',currency='USD';
+  for(const row of doc.querySelectorAll('tr')){
+    const t=row.textContent;
+    if(t.includes('Account:')&&t.includes('Currency:')){
+      const cm=t.match(/Currency:\s*([A-Z]+)/); if(cm)currency=cm[1];
+      const dm=t.match(/(\d{4}\s+\w+\s+\d+)/); if(dm)statDate=dm[1].trim();
+      break;
+    }
+  }
+
+  const EXEC=new Set(['buy','sell','buy limit','sell limit','buy stop','sell stop']);
+  const trades=[], balances=[];
+
+  for(const row of doc.querySelectorAll('tr')){
+    const cells=[...row.querySelectorAll('td')];
+    if(cells.length<3) continue;
+    const type=cells[2]?.textContent.trim().toLowerCase();
+    if(!type||type==='type'||type==='open time') continue;
+
+    // Skip cancelled
+    const hasCancelSpan=cells.some(c=>(c.getAttribute('colspan')||'').length>0&&c.textContent.trim().toLowerCase()==='cancelled');
+    if(hasCancelSpan) continue;
+    if(cells[cells.length-1]?.textContent.trim().toLowerCase()==='cancelled') continue;
+
+    if(type==='balance'){
+      const raw=cells[cells.length-1]?.textContent.trim().replace(/[\s,]/g,'');
+      const amt=parseFloat(raw)||0;
+      const t=parseMT4Date(cells[1]?.textContent.trim());
+      const desc=cells[3]?.textContent.trim()||'';
+      balances.push({time:t,amount:amt,desc});
+      continue;
+    }
+
+    if(!EXEC.has(type)||cells.length<14) continue;
+    const profit    =pN(cells[13]?.textContent);
+    const commission=pN(cells[10]?.textContent);
+    const taxes     =pN(cells[11]?.textContent);
+    const swap      =pN(cells[12]?.textContent);
+    trades.push({
+      ticket:cells[0]?.textContent.trim(),
+      openTime:parseMT4Date(cells[1]?.textContent.trim()),
+      closeTime:parseMT4Date(cells[8]?.textContent.trim()),
+      type,isBalance:false,
+      size:parseFloat(cells[3]?.textContent)||0,
+      item:cells[4]?.textContent.trim().toLowerCase(),
+      openPrice:parseFloat(cells[5]?.textContent)||0,
+      closePrice:parseFloat(cells[9]?.textContent)||0,
+      commission,taxes,swap,profit,
+      netContrib:profit+commission+swap+taxes
+    });
+  }
+
+  // Full text for summary extraction
+  const ft=(doc.body?.textContent||'').replace(/\u00a0/g,' ');
+  function xN(label){
+    const re=new RegExp(label.replace(/[/()/]/g,'\\$&')+'[:\\s]*([\\d\\s,\\.\\-]+)','i');
+    const m=ft.match(re);
+    if(!m)return null;
+    return parseFloat(m[1].replace(/\s/g,'').replace(/,/g,''))||0;
+  }
+  const summary={
+    totalNetProfit:xN('Total Net Profit'),grossProfit:xN('Gross Profit'),
+    grossLoss:xN('Gross Loss'),closedTradePL:xN('Closed Trade P/L'),
+    balance:xN('Balance'),depositWithdrawal:xN('Deposit/Withdrawal'),
+    totalTrades:xN('Total Trades'),profitFactor:xN('Profit Factor'),
+    expectedPayoff:xN('Expected Payoff'),maxDrawdown:null,
+  };
+
+  // Sort trades by close time
+  trades.sort((a,b)=>(a.closeTime||0)-(b.closeTime||0));
+
+  // Equity curve data — cumulative net P&L from trades only
+  let running=0;
+  const equityCurve=trades.map(t=>{
+    running+=t.netContrib;
+    return{date:t.closeTime,val:running,trade:t};
+  });
+
+  // Max drawdown calculation
+  let peak=-Infinity, maxDD=0;
+  equityCurve.forEach(p=>{
+    if(p.val>peak)peak=p.val;
+    const dd=peak-p.val;
+    if(dd>maxDD)maxDD=dd;
+  });
+  summary.peakPnl=peak;
+  summary.maxDrawdown=maxDD;
+
+  // Daily aggregation
+  const dailyMap=new Map();
+  for(const t of trades){
+    if(!t.closeTime) continue;
+    const k=t.closeTime.toISOString().slice(0,10);
+    if(!dailyMap.has(k))dailyMap.set(k,{date:k,trades:[],gProfit:0,gLoss:0,commission:0,swap:0});
+    const d=dailyMap.get(k);
+    d.trades.push(t);
+    if(t.profit>0)d.gProfit+=t.profit; else d.gLoss+=t.profit;
+    d.commission+=t.commission; d.swap+=t.swap;
+  }
+  const days=[...dailyMap.values()].sort((a,b)=>a.date.localeCompare(b.date));
+  days.forEach(d=>{d.net=d.gProfit+d.gLoss+d.commission+d.swap;});
+  let runD=0;
+  days.forEach(d=>{runD+=d.net;d.running=runD;});
+
+  // Weekly aggregation
+  const weekMap=new Map();
+  for(const t of trades){
+    if(!t.closeTime) continue;
+    const{isoYear,isoWeek,weekStart,weekEnd}=isoWeekInfo(t.closeTime);
+    const k=`${isoYear}-W${String(isoWeek).padStart(2,'0')}`;
+    if(!weekMap.has(k))weekMap.set(k,{key:k,weekStart,weekEnd,trades:[],gProfit:0,gLoss:0,commission:0,swap:0,wins:0});
+    const w=weekMap.get(k);
+    w.trades.push(t);
+    if(t.profit>0){w.gProfit+=t.profit;w.wins++;}else w.gLoss+=t.profit;
+    w.commission+=t.commission; w.swap+=t.swap;
+  }
+  const weeks=[...weekMap.values()].sort((a,b)=>a.key.localeCompare(b.key));
+  weeks.forEach(w=>{w.net=w.gProfit+w.gLoss+w.commission+w.swap;});
+
+  // Monthly aggregation
+  const monthMap=new Map();
+  const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  for(const t of trades){
+    if(!t.closeTime) continue;
+    const y=t.closeTime.getUTCFullYear(), m=t.closeTime.getUTCMonth();
+    const k=`${y}-${String(m+1).padStart(2,'0')}`;
+    if(!monthMap.has(k))monthMap.set(k,{key:k,label:`${MON[m]} ${y}`,trades:[],gProfit:0,gLoss:0,commission:0,swap:0,wins:0});
+    const mo=monthMap.get(k);
+    mo.trades.push(t);
+    if(t.profit>0){mo.gProfit+=t.profit;mo.wins++;}else mo.gLoss+=t.profit;
+    mo.commission+=t.commission; mo.swap+=t.swap;
+  }
+  const months=[...monthMap.values()].sort((a,b)=>a.key.localeCompare(b.key));
+  months.forEach(m=>{m.net=m.gProfit+m.gLoss+m.commission+m.swap;});
+
+  // Instrument breakdown
+  const instMap=new Map();
+  for(const t of trades){
+    const sym=t.item||'unknown';
+    if(!instMap.has(sym))instMap.set(sym,{sym,trades:[],gProfit:0,gLoss:0,commission:0,wins:0});
+    const inst=instMap.get(sym);
+    inst.trades.push(t);
+    if(t.profit>0){inst.gProfit+=t.profit;inst.wins++;}else inst.gLoss+=t.profit;
+    inst.commission+=t.commission;
+  }
+  const instruments=[...instMap.values()].sort((a,b)=>b.trades.length-a.trades.length);
+  instruments.forEach(i=>{i.net=i.gProfit+i.gLoss+i.commission;});
+
+  return{accountNum,traderName,statDate,currency,trades,balances,equityCurve,days,weeks,months,instruments,summary};
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER DASHBOARD
+// ═══════════════════════════════════════════════════════
+function renderDashboard(data,filename){
+  const s=data.summary;
+  const trades=data.trades;
+
+  // Banner update
+  banner.classList.add('loaded');
+  banner.querySelector('h3').textContent='✓ '+filename;
+  banner.querySelectorAll('p')[0].textContent=
+    `${data.trades.length} trades · ${data.weeks.length} weeks · ${data.months.length} months · Account #${data.accountNum} · ${data.traderName}`;
+  banner.querySelectorAll('p')[1].textContent='';
+
+  // Hero stats
+  show('heroStats'); show('chartsSection');
+
+  const winCount=trades.filter(t=>t.profit>0).length;
+  const lossCount=trades.filter(t=>t.profit<0).length;
+  const winRate=trades.length>0?(winCount/trades.length*100):0;
+  const avgWin=winCount>0?(s.grossProfit/winCount):0;
+  const avgLoss=lossCount>0?(Math.abs(s.grossLoss)/lossCount):0;
+
+  // Stats
+  const bal=s.balance||0;
+  setTxt('sBalance', '$'+fmt2(Math.abs(bal)));
+  document.getElementById('sBalance').className='sc-val '+(bal>=0?'green':'red');
+  setTxt('sBalSub', 'Equity: $'+fmt2(bal));
+  const pnl=s.totalNetProfit||0;
+  setTxt('sNetPnl','$'+fmt2(Math.abs(pnl)));
+  document.getElementById('sNetPnl').className='sc-val '+(pnl>=0?'green':'red');
+  setTxt('sPnlSub',(pnl>=0?'+':'-')+fmt2(Math.abs(pnl))+' USD');
+  setTxt('sWinRate',winRate.toFixed(1)+'%');
+  document.getElementById('sWinRate').className='sc-val '+(winRate>=60?'green':winRate>=50?'amber':'red');
+  setTxt('sWrSub',`${winCount}W / ${lossCount}L`);
+  setTxt('sPF',(s.profitFactor||0).toFixed(2));
+  setTxt('sTrades',(s.totalTrades||trades.length).toLocaleString());
+  setTxt('sTradesSub',`${data.months.length} mo · ${data.weeks.length} wk`);
+  setTxt('sAvgWL','$'+fmt2(avgWin)+' / $'+fmt2(avgLoss));
+  setTxt('sAvgSub','Win / Loss avg');
+
+  // Equity chart badges
+  setTxt('ecPeak','Peak: +$'+fmt2(s.peakPnl||0));
+  setTxt('ecDD','Max DD: -$'+fmt2(s.maxDrawdown||0));
+  const first=data.equityCurve[0]?.date,last=data.equityCurve[data.equityCurve.length-1]?.date;
+  setTxt('ecPeriod',(first?first.toISOString().slice(0,10):'?')+' → '+(last?last.toISOString().slice(0,10):'?'));
+
+  buildEquityChart(data);
+  buildDailyChart(data);
+  buildWeeklyChart(data);
+  buildMonthlyChart(data);
+  buildDailyTable(data);
+  buildWeeklyTable(data);
+  buildMonthlyTable(data);
+  buildInstruments(data);
+  buildMT4WeekPicker(data);
+  if(isTrader)show('mt4WeekPicker');
+}
+
+// ─── Equity Curve ─────────────────────────────────────
+function buildEquityChart(data){
+  // Downsample to daily points for readability
+  const dailyPts=new Map();
+  for(const pt of data.equityCurve){
+    if(!pt.date) continue;
+    const k=pt.date.toISOString().slice(0,10);
+    dailyPts.set(k,pt.val); // last value of each day
+  }
+  const labels=[...dailyPts.keys()].sort();
+  const vals=labels.map(k=>dailyPts.get(k));
+
+  const ctx=document.getElementById('equityChart').getContext('2d');
+  if(equityChartInst)equityChartInst.destroy();
+
+  const green='rgba(0,212,124,1)', greenFade='rgba(0,212,124,0)';
+  const red='rgba(240,62,62,1)',   redFade='rgba(240,62,62,0)';
+  const gradUp=ctx.createLinearGradient(0,0,0,340);
+  gradUp.addColorStop(0,'rgba(0,212,124,0.18)');
+  gradUp.addColorStop(1,'rgba(0,212,124,0)');
+  const gradDown=ctx.createLinearGradient(0,0,0,340);
+  gradDown.addColorStop(0,'rgba(240,62,62,0)');
+  gradDown.addColorStop(1,'rgba(240,62,62,0.1)');
+
+  // Color segments: green where positive, red where negative
+  const pointColors=vals.map(v=>v>=0?green:red);
+  const finalVal=vals[vals.length-1]||0;
+
+  equityChartInst=new Chart(ctx,{
+    type:'line',
+    data:{
+      labels,
+      datasets:[{
+        label:'Cumulative P&L ($)',
+        data:vals,
+        borderColor:pointColors,
+        segment:{borderColor:ctx=>vals[ctx.p1DataIndex]>=0?green:red},
+        backgroundColor:finalVal>=0?gradUp:gradDown,
+        fill:true,
+        tension:.3,
+        pointRadius:0,
+        pointHoverRadius:4,
+        borderWidth:2
+      },{
+        label:'Zero line',
+        data:labels.map(()=>0),
+        borderColor:'rgba(255,255,255,0.08)',
+        borderWidth:1,
+        borderDash:[4,4],
+        pointRadius:0,
+        fill:false
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'rgba(13,17,23,0.95)',
+          borderColor:'rgba(30,45,61,1)',borderWidth:1,
+          titleColor:'#8b949e',bodyColor:'#c9d1d9',
+          callbacks:{
+            label:ctx=>ctx.datasetIndex===0?`P&L: ${ctx.raw>=0?'+':''}$${fmt2(ctx.raw)}`:'',
+          }
+        }
+      },
+      scales:{
+        x:{
+          grid:{color:'rgba(255,255,255,0.03)',drawBorder:false},
+          ticks:{color:'#4a5568',font:{family:'JetBrains Mono',size:9},maxTicksLimit:12,maxRotation:0}
+        },
+        y:{
+          grid:{color:'rgba(255,255,255,0.04)',drawBorder:false},
+          ticks:{
+            color:'#4a5568',font:{family:'JetBrains Mono',size:9},
+            callback:v=>'$'+fmt2(v)
+          }
+        }
+      }
+    }
+  });
+}
+
+// ─── Daily Chart ──────────────────────────────────────
+function buildDailyChart(data){
+  // Last 60 days for readability
+  const days=data.days.slice(-60);
+  const labels=days.map(d=>d.date.slice(5)); // MM-DD
+  const vals=days.map(d=>d.net);
+  const colors=vals.map(v=>v>=0?'rgba(0,212,124,0.7)':'rgba(240,62,62,0.7)');
+
+  // Badge
+  const best=Math.max(...data.days.map(d=>d.net));
+  const worst=Math.min(...data.days.map(d=>d.net));
+  setTxt('dBestDay','Best: +$'+fmt2(best));
+  setTxt('dWorstDay','Worst: -$'+fmt2(Math.abs(worst)));
+
+  const ctx=document.getElementById('dailyChart').getContext('2d');
+  if(dailyChartInst)dailyChartInst.destroy();
+  dailyChartInst=new Chart(ctx,{
+    type:'bar',
+    data:{labels,datasets:[{label:'Daily Net P&L',data:vals,backgroundColor:colors,borderWidth:0,borderRadius:2}]},
+    options:barOpts(v=>'$'+fmt2(v))
+  });
+}
+
+// ─── Weekly Chart ─────────────────────────────────────
+function buildWeeklyChart(data){
+  const labels=data.weeks.map(w=>w.key.replace('-W','\nW'));
+  const vals=data.weeks.map(w=>w.net);
+  const colors=vals.map(v=>v>=0?'rgba(0,212,124,0.7)':'rgba(240,62,62,0.7)');
+  const best=Math.max(...vals), worst=Math.min(...vals);
+  setTxt('wBestWeek','Best: +$'+fmt2(best));
+  setTxt('wWorstWeek','Worst: -$'+fmt2(Math.abs(worst)));
+  const ctx=document.getElementById('weeklyChart').getContext('2d');
+  if(weeklyChartInst)weeklyChartInst.destroy();
+  weeklyChartInst=new Chart(ctx,{
+    type:'bar',
+    data:{labels,datasets:[{label:'Weekly Net P&L',data:vals,backgroundColor:colors,borderWidth:0,borderRadius:2}]},
+    options:barOpts(v=>'$'+fmt2(v))
+  });
+}
+
+// ─── Monthly Chart ────────────────────────────────────
+function buildMonthlyChart(data){
+  const labels=data.months.map(m=>m.label);
+  const vals=data.months.map(m=>m.net);
+  const colors=vals.map(v=>v>=0?'rgba(0,212,124,0.7)':'rgba(240,62,62,0.7)');
+  const best=Math.max(...vals), worst=Math.min(...vals);
+  setTxt('mBestMonth','Best: +$'+fmt2(best));
+  setTxt('mWorstMonth','Worst: -$'+fmt2(Math.abs(worst)));
+  const ctx=document.getElementById('monthlyChart').getContext('2d');
+  if(monthlyChartInst)monthlyChartInst.destroy();
+  monthlyChartInst=new Chart(ctx,{
+    type:'bar',
+    data:{labels,datasets:[{label:'Monthly Net P&L',data:vals,backgroundColor:colors,borderWidth:0,borderRadius:3}]},
+    options:barOpts(v=>'$'+fmt2(v))
+  });
+}
+
+function barOpts(yFmt){
+  return{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{
+      backgroundColor:'rgba(13,17,23,.95)',borderColor:'rgba(30,45,61,1)',borderWidth:1,
+      titleColor:'#8b949e',bodyColor:'#c9d1d9',
+      callbacks:{label:ctx=>`${ctx.raw>=0?'+':''}$${fmt2(ctx.raw)}`}
+    }},
+    scales:{
+      x:{grid:{display:false},ticks:{color:'#4a5568',font:{family:'JetBrains Mono',size:9},maxRotation:0,maxTicksLimit:20}},
+      y:{grid:{color:'rgba(255,255,255,0.04)',drawBorder:false},ticks:{color:'#4a5568',font:{family:'JetBrains Mono',size:9},callback:yFmt}}
+    }
+  };
+}
+
+// ─── Tables ───────────────────────────────────────────
+function buildDailyTable(data){
+  const tb=document.getElementById('dailyBody');
+  tb.innerHTML='';
+  const maxAbs=Math.max(...data.days.map(d=>Math.abs(d.net)),1);
+  data.days.slice().reverse().forEach(d=>{
+    const cls=d.net>=0?'pp':'pn';
+    const w=Math.round(Math.abs(d.net)/maxAbs*60);
+    const bar=`<span class="pnl-bar" style="width:${w}px;background:${d.net>=0?'var(--green)':'var(--red)'}"></span>`;
+    tb.innerHTML+=`<tr>
+      <td>${d.date}</td>
+      <td>${d.trades.length}</td>
+      <td class="pp">+$${fmt2(d.gProfit)}</td>
+      <td class="pn">-$${fmt2(Math.abs(d.gLoss))}</td>
+      <td style="color:var(--muted)">$${fmt2(d.commission)}</td>
+      <td class="${cls}">${bar}${d.net>=0?'+':''}$${fmt2(d.net)}</td>
+      <td class="${d.running>=0?'pp':'pn'}">${d.running>=0?'+':''}$${fmt2(d.running)}</td>
+    </tr>`;
+  });
+}
+
+function buildWeeklyTable(data){
+  const tb=document.getElementById('weeklyBody');
+  tb.innerHTML='';
+  const fD=d=>d?d.toISOString().slice(0,10):'?';
+  data.weeks.slice().reverse().forEach(w=>{
+    const cls=w.net>=0?'pp':'pn';
+    tb.innerHTML+=`<tr>
+      <td><strong>${w.key}</strong></td>
+      <td style="font-size:10px;color:var(--muted)">${fD(w.weekStart)} → ${fD(w.weekEnd)}</td>
+      <td>${w.trades.length}</td>
+      <td class="pp">+$${fmt2(w.gProfit)}</td>
+      <td class="pn">-$${fmt2(Math.abs(w.gLoss))}</td>
+      <td style="color:var(--muted)">$${fmt2(w.commission)}</td>
+      <td class="${cls}">${w.net>=0?'+':''}$${fmt2(w.net)}</td>
+    </tr>`;
+  });
+}
+
+function buildMonthlyTable(data){
+  const tb=document.getElementById('monthlyBody');
+  tb.innerHTML='';
+  data.months.slice().reverse().forEach(m=>{
+    const cls=m.net>=0?'pp':'pn';
+    const wr=m.trades.length>0?(m.wins/m.trades.length*100).toFixed(0)+'%':'—';
+    tb.innerHTML+=`<tr>
+      <td><strong>${m.label}</strong></td>
+      <td>${m.trades.length}</td>
+      <td class="pp">+$${fmt2(m.gProfit)}</td>
+      <td class="pn">-$${fmt2(Math.abs(m.gLoss))}</td>
+      <td style="color:var(--muted)">$${fmt2(m.commission)}</td>
+      <td class="${cls}">${m.net>=0?'+':''}$${fmt2(m.net)}</td>
+      <td style="color:${parseFloat(wr)>=60?'var(--green)':parseFloat(wr)>=50?'var(--amber)':'var(--red)'}">${wr}</td>
+    </tr>`;
+  });
+}
+
+// ─── Instrument breakdown ─────────────────────────────
+function buildInstruments(data){
+  const grid=document.getElementById('instGrid');
+  grid.innerHTML='';
+  const symLabels={'us30.spot':'US30 / Dow Jones','btcusd':'BTC / USD','ethusd':'ETH / USD'};
+  data.instruments.forEach(inst=>{
+    const net=inst.net;
+    const wr=inst.trades.length>0?(inst.wins/inst.trades.length*100).toFixed(1):0;
+    const label=symLabels[inst.sym]||inst.sym.toUpperCase();
+    grid.innerHTML+=`
+      <div class="inst-card">
+        <div class="ic-sym">${label.split('/')[0].trim()} <span>/ ${(label.split('/')[1]||'').trim()}</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+          <div><div style="font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:3px">Trades</div>
+               <div style="font-size:16px;font-weight:700">${inst.trades.length}</div></div>
+          <div><div style="font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:3px">Net P&L</div>
+               <div style="font-size:16px;font-weight:700;color:${net>=0?'var(--green)':'var(--red)'}">${net>=0?'+':''}$${fmt2(net)}</div></div>
+          <div><div style="font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:3px">Win Rate</div>
+               <div style="font-size:16px;font-weight:700;color:${wr>=60?'var(--green)':wr>=50?'var(--amber)':'var(--red)'}">${wr}%</div></div>
+        </div>
+        <div style="margin-top:10px;height:3px;background:var(--bg4);border-radius:2px">
+          <div style="width:${wr}%;height:100%;background:${wr>=60?'var(--green)':wr>=50?'var(--amber)':'var(--red)'};border-radius:2px"></div>
+        </div>
+      </div>`;
+  });
+}
+
+// ─── MT4 week picker (trader only) ───────────────────
+function buildMT4WeekPicker(data){
+  const tb=document.getElementById('mt4WeekBody');
+  tb.innerHTML='';
+  const fD=d=>d?d.toISOString().slice(0,10):'?';
+  data.weeks.slice().reverse().forEach((w,i)=>{
+    const idx=data.weeks.length-1-i;
+    const cls=w.net>=0?'pp':'pn';
+    tb.innerHTML+=`<tr>
+      <td><strong>${w.key}</strong></td>
+      <td style="font-size:10px;color:var(--muted)">${fD(w.weekStart)} → ${fD(w.weekEnd)}</td>
+      <td>${w.trades.length}</td>
+      <td class="${cls}">${w.net>=0?'+':''}$${fmt2(w.net)}</td>
+      <td class="pp">+$${fmt2(w.gProfit)}</td>
+      <td class="pn">-$${fmt2(Math.abs(w.gLoss))}</td>
+      <td style="color:var(--muted)">$${fmt2(w.commission)}</td>
+      <td><button class="btn btn-green btn-sm" onclick="pickWeek(event,${idx})">Use ↓</button></td>
+    </tr>`;
+  });
+}
+
+function pickWeek(evt,idx){
+  evt.stopPropagation();
+  const data=window._mt4; if(!data) return;
+  const w=data.weeks[idx];
+  [...document.getElementById('mt4WeekBody').rows].forEach(r=>r.classList.remove('sel'));
+  evt.target.closest('tr').classList.add('sel');
+  const fD=d=>d?d.toISOString().slice(0,10):'?';
+  const ref=`Blaze-${data.accountNum}-${w.key}-${data.traderName.replace(/\s+/g,'-')}`;
+  document.getElementById('logRef').value   =ref;
+  document.getElementById('logPnl').value   =w.net.toFixed(2);
+  document.getElementById('logPeriod').value=fD(w.weekStart)+' → '+fD(w.weekEnd);
+  document.getElementById('parsedBadge').style.display='inline-block';
+  document.getElementById('logRef').style.borderColor='var(--green)';
+  document.getElementById('logPnl').style.borderColor='var(--green)';
+  document.getElementById('logRef').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+// ─── Tab switching ────────────────────────────────────
+function switchTab(name,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════
+// WEB3 ACTIONS
+// ═══════════════════════════════════════════════════════
+async function depositETH(){
+  const amt=document.getElementById('ethAmount').value;
+  if(!amt||parseFloat(amt)<=0) return sa('ethAlert','err','Enter a valid ETH amount.');
+  try{
+    sa('ethAlert','info','Sending… <span class="spin">⟳</span>');
+    const tx=await contract.depositETH({value:ethers.parseEther(amt)});
+    await tx.wait(); sa('ethAlert','ok','✓ ETH deposited.');
+    document.getElementById('ethAmount').value=''; await refreshW3();
+  }catch(e){sa('ethAlert','err',e.reason||e.message);}
+}
+async function approveUSDT(){
+  const amt=document.getElementById('usdtAmount').value;
+  if(!amt||parseFloat(amt)<=0) return sa('usdtAlert','err','Enter amount first.');
+  try{
+    sa('usdtAlert','info','Approving… <span class="spin">⟳</span>');
+    await(await usdtContract.approve(CONTRACT_ADDRESS,BigInt(Math.floor(parseFloat(amt)*1e6)))).wait();
+    sa('usdtAlert','ok','✓ Approved. Now deposit.');
+  }catch(e){sa('usdtAlert','err',e.reason||e.message);}
+}
+async function depositUSDT(){
+  const amt=document.getElementById('usdtAmount').value;
+  if(!amt||parseFloat(amt)<=0) return sa('usdtAlert','err','Enter a valid USDT amount.');
+  try{
+    sa('usdtAlert','info','Depositing… <span class="spin">⟳</span>');
+    await(await contract.depositUSDT(BigInt(Math.floor(parseFloat(amt)*1e6)))).wait();
+    sa('usdtAlert','ok','✓ USDT deposited.');
+    document.getElementById('usdtAmount').value=''; await refreshW3();
+  }catch(e){sa('usdtAlert','err',e.reason||e.message);}
+}
+async function withdraw(){
+  try{
+    sa('withdrawAlert','info','Withdrawing… <span class="spin">⟳</span>');
+    await(await contract.withdraw()).wait();
+    sa('withdrawAlert','ok','✓ Done!'); await refreshW3();
+  }catch(e){sa('withdrawAlert','err',e.reason||e.message);}
+}
+async function addWhitelist(){
+  const a=gA(); if(!a.length) return;
+  try{
+    sa('wlAlert','info','Adding… <span class="spin">⟳</span>');
+    await(await contract.setWhitelist(a,true)).wait();
+    sa('wlAlert','ok',`✓ ${a.length} added.`);
+    document.getElementById('wlChips').innerHTML=a.map(x=>`<span class="wl-chip">${x.slice(0,6)}…${x.slice(-4)}</span>`).join('');
+  }catch(e){sa('wlAlert','err',e.reason||e.message);}
+}
+async function removeWhitelist(){
+  const a=gA(); if(!a.length) return;
+  try{
+    sa('wlAlert','info','Removing…');
+    await(await contract.setWhitelist(a,false)).wait();
+    sa('wlAlert','ok',`✓ ${a.length} removed.`);
+  }catch(e){sa('wlAlert','err',e.reason||e.message);}
+}
+function gA(){return document.getElementById('wlAddresses').value.trim().split('\n').map(x=>x.trim()).filter(x=>x);}
+async function withdrawToTrading(){
+  if(!confirm('Withdraw all pooled funds and start TRADING phase?')) return;
+  try{
+    sa('fundAlert','info','Withdrawing… <span class="spin">⟳</span>');
+    await(await contract.withdrawFundsToTrading()).wait();
+    sa('fundAlert','ok','✓ Funds withdrawn. Phase: TRADING'); await refreshW3();
+  }catch(e){sa('fundAlert','err',e.reason||e.message);}
+}
+async function resetCycle(){
+  if(!confirm('Reset cycle? Clears all records.')) return;
+  try{
+    sa('resetAlert','info','Resetting…');
+    await(await contract.resetCycle()).wait();
+    sa('resetAlert','ok','✓ Reset.'); await refreshW3();
+  }catch(e){sa('resetAlert','err',e.reason||e.message);}
+}
+async function setTrader(){
+  const addr=document.getElementById('traderAddr').value.trim();
+  if(!ethers.isAddress(addr)) return sa('traderAlert','err','Invalid address.');
+  try{
+    sa('traderAlert','info','Updating…');
+    await(await contract.setTrader(addr)).wait();
+    sa('traderAlert','ok','✓ Updated.');
+  }catch(e){sa('traderAlert','err',e.reason||e.message);}
+}
+async function submitLog(){
+  const ref=document.getElementById('logRef').value.trim();
+  const pnl=document.getElementById('logPnl').value;
+  if(!ref||!pnl) return sa('logAlert','err','Fill all fields.');
+  try{
+    sa('logAlert','info','Submitting… <span class="spin">⟳</span>');
+    await(await contract.submitTradingLog(ref,BigInt(Math.round(parseFloat(pnl)*1e6)))).wait();
+    sa('logAlert','ok','✓ Submitted on-chain.'); await refreshW3();
+  }catch(e){sa('logAlert','err',e.reason||e.message);}
+}
+async function approveReturnUSDT(){
+  const amt=document.getElementById('returnUsdtAmt').value;
+  if(!amt||parseFloat(amt)<=0) return sa('returnAlert','err','Enter USDT amount.');
+  try{
+    sa('returnAlert','info','Approving…');
+    await(await usdtContract.approve(CONTRACT_ADDRESS,BigInt(Math.floor(parseFloat(amt)*1e6)))).wait();
+    sa('returnAlert','ok','✓ Approved.');
+  }catch(e){sa('returnAlert','err',e.reason||e.message);}
+}
+async function depositReturnUSDT(){
+  const amt=document.getElementById('returnUsdtAmt').value;
+  if(!amt||parseFloat(amt)<=0) return sa('returnAlert','err','Enter USDT amount.');
+  try{
+    sa('returnAlert','info','Sending…');
+    await(await contract.depositReturnsUSDT(BigInt(Math.floor(parseFloat(amt)*1e6)))).wait();
+    sa('returnAlert','ok','✓ USDT sent. Now finalize.');
+  }catch(e){sa('returnAlert','err',e.reason||e.message);}
+}
+async function depositReturns(){
+  const ea=document.getElementById('returnEthAmt').value;
+  const v=ea&&parseFloat(ea)>0?ethers.parseEther(ea):0n;
+  try{
+    sa('returnAlert','info','Distributing… <span class="spin">⟳</span>');
+    await(v>0n?await contract.depositReturns({value:v}):await contract.distributeReturnsManually()).wait();
+    sa('returnAlert','ok','✓ Returns distributed.'); await refreshW3();
+  }catch(e){sa('returnAlert','err',e.reason||e.message);}
+}
+
+// ═══════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════
+function parseMT4Date(str){
+  if(!str) return null;
+  str=str.trim().replace(/\u00a0/g,' ');
+  const m=str.match(/(\d{4})\.(\d{2})\.(\d{2})(?:\s+(\d{2}):(\d{2}):(\d{2}))?/);
+  if(!m) return null;
+  return new Date(Date.UTC(+m[1],+m[2]-1,+m[3],m[4]?+m[4]:0,m[5]?+m[5]:0,m[6]?+m[6]:0));
+}
+function isoWeekInfo(date){
+  const d=new Date(Date.UTC(date.getUTCFullYear(),date.getUTCMonth(),date.getUTCDate()));
+  const day=d.getUTCDay()||7;
+  const mon=new Date(d); mon.setUTCDate(d.getUTCDate()-(day-1));
+  const sun=new Date(mon); sun.setUTCDate(mon.getUTCDate()+6);
+  const thu=new Date(mon); thu.setUTCDate(mon.getUTCDate()+3);
+  const ys=new Date(Date.UTC(thu.getUTCFullYear(),0,1));
+  return{isoYear:thu.getUTCFullYear(),isoWeek:Math.ceil(((thu-ys)/86400000+1)/7),weekStart:mon,weekEnd:sun};
+}
+function pN(str){if(!str)return 0;return parseFloat(str.trim().replace(/\s/g,'').replace(/,/g,''))||0;}
+function fmt2(n){return Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function sa(id,type,msg){const el=document.getElementById(id);el.className='alert '+type+' show';el.innerHTML=msg;}
+function setTxt(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
+function show(id){const el=document.getElementById(id);if(el)el.style.display='block';}
+function fE(wei){return parseFloat(ethers.formatEther(wei)).toFixed(4);}
+function fU(raw){return(Number(raw)/1e6).toFixed(2);}
+
+// Chart.js global defaults
+Chart.defaults.color='#4a5568';
+Chart.defaults.borderColor='rgba(255,255,255,0.04)';
+Chart.defaults.font.family='JetBrains Mono';
+</script>
+</body>
+</html>
