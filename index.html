@@ -549,6 +549,9 @@ textarea{resize:vertical;min-height:60px}
       <div class="stat-card"><div class="sc-label">Pending ETH Return</div><div class="sc-val green" id="myRetEth">—</div></div>
       <div class="stat-card"><div class="sc-label">Pending USDT Return</div><div class="sc-val green" id="myRetUsdt">—</div></div>
     </div>
+
+    <div id="withdrawMsg" style="font-size:11px;color:var(--muted);margin-bottom:16px;font-family:var(--mono);letter-spacing:.04em"></div>
+
     <div id="withdrawSection" style="display:none;margin-bottom:24px">
       <button class="btn btn-green" style="max-width:280px" onclick="withdraw()">Withdraw Returns</button>
       <div class="alert" id="withdrawAlert"></div>
@@ -769,6 +772,24 @@ async function refreshW3(){
     setTxt('myRetUsdt',fU(rets[1])+' USDT');
     const hasR=rets[0]>0n||rets[1]>0n;
     document.getElementById('withdrawSection').style.display=(ph===2&&rD&&hasR)?'block':'none';
+    const wMsg=document.getElementById('withdrawMsg');
+    if(wMsg){
+      if(ph===0) wMsg.textContent='Deposits open — trading has not started yet.';
+      else if(ph===1) wMsg.textContent='Funds are being traded at Blaze Markets. Returns will be available when the cycle closes.';
+      else if(ph===2&&!rD) wMsg.textContent='Cycle closing — waiting for trader to distribute returns.';
+      else if(ph===2&&rD&&!hasR) wMsg.textContent='Returns distributed. Nothing pending for your address this cycle.';
+      else wMsg.textContent='';
+    }
+
+    // Show phase-aware message when withdraw not yet available
+    const wMsg = document.getElementById('withdrawMsg');
+    if(wMsg){
+     if(ph===0) wMsg.textContent='Deposits open — trading has not started yet.';
+     else if(ph===1) wMsg.textContent='Funds are being traded at Blaze Markets. Returns will be available when the cycle closes.';
+     else if(ph===2 && !rD) wMsg.textContent='Cycle closing — waiting for trader to distribute returns.';
+     else if(ph===2 && rD && !hasR) wMsg.textContent='Returns distributed. Nothing pending for your address this cycle.';
+     else wMsg.textContent='';
+    }
 
     // Wallet balances
     const wb=await provider.getBalance(myAddress);
