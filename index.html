@@ -781,15 +781,7 @@ async function refreshW3(){
       else wMsg.textContent='';
     }
 
-    // Show phase-aware message when withdraw not yet available
-    const wMsg = document.getElementById('withdrawMsg');
-    if(wMsg){
-     if(ph===0) wMsg.textContent='Deposits open — trading has not started yet.';
-     else if(ph===1) wMsg.textContent='Funds are being traded at Blaze Markets. Returns will be available when the cycle closes.';
-     else if(ph===2 && !rD) wMsg.textContent='Cycle closing — waiting for trader to distribute returns.';
-     else if(ph===2 && rD && !hasR) wMsg.textContent='Returns distributed. Nothing pending for your address this cycle.';
-     else wMsg.textContent='';
-    }
+    // Wallet balances
 
     // Wallet balances
     const wb=await provider.getBalance(myAddress);
