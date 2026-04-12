@@ -550,7 +550,7 @@ textarea{resize:vertical;min-height:60px}
       <div class="stat-card"><div class="sc-label">Pending USDT Return</div><div class="sc-val green" id="myRetUsdt">—</div></div>
     </div>
 
-    <div id="withdrawMsg" style="font-size:11px;color:var(--text2);margin-bottom:16px;font-family:var(--mono);letter-spacing:.04em;padding:8px 12px;border-left:2px solid var(--green);background:rgba(0,146,90,0.05)"></div>
+    <div id="withdrawMsg" style="font-size:11px;color:var(--muted);margin-bottom:16px;font-family:var(--mono);letter-spacing:.04em"></div>
 
     <div id="withdrawSection" style="display:none;margin-bottom:24px">
       <button class="btn btn-green" style="max-width:280px" onclick="withdraw()">Withdraw Returns</button>
@@ -560,6 +560,47 @@ textarea{resize:vertical;min-height:60px}
 
   <!-- Owner section -->
   <div id="ownerSection" style="display:none">
+
+    <!-- How It Works — collapsible guide -->
+    <div style="border:1px solid var(--border);margin-bottom:20px;background:var(--bg2)">
+      <div onclick="toggleHowTo()" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;user-select:none">
+        <div style="font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--green);font-weight:700">Fund Cycle — How It Works</div>
+        <span id="howToIcon" style="color:var(--muted);font-size:12px">▶</span>
+      </div>
+      <div id="howToBody" style="display:none;padding:0 16px 16px;border-top:1px solid var(--border)">
+        <div style="display:flex;flex-direction:column;gap:0;margin-top:14px">
+          <div style="display:grid;grid-template-columns:28px 1fr;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+            <div style="font-family:var(--brand);font-size:20px;color:var(--green);line-height:1;padding-top:2px">1</div>
+            <div><div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text);margin-bottom:3px">Whitelist depositors</div><div style="font-size:11px;color:var(--muted);line-height:1.6">Add wallet addresses to the whitelist below. Only whitelisted wallets can deposit in OPEN phase.</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:28px 1fr;gap:12px;padding:14px 0;border-bottom:1px solid var(--border)">
+            <div style="font-family:var(--brand);font-size:20px;color:var(--green);line-height:1;padding-top:2px">2</div>
+            <div><div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text);margin-bottom:3px">Depositors send funds</div><div style="font-size:11px;color:var(--muted);line-height:1.6">Whitelisted users connect MetaMask and deposit ETH or USDT. Watch the pool grow in the stats above.</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:28px 1fr;gap:12px;padding:14px 0;border-bottom:1px solid var(--border)">
+            <div style="font-family:var(--brand);font-size:20px;color:var(--amber);line-height:1;padding-top:2px">3</div>
+            <div><div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text);margin-bottom:3px">Withdraw pool → Blaze</div><div style="font-size:11px;color:var(--muted);line-height:1.6">Click <strong style="color:var(--text)">Withdraw Pool → Blaze</strong> below. Pulls all funds to your wallet, snapshots each depositor's share, flips phase to TRADING.</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:28px 1fr;gap:12px;padding:14px 0;border-bottom:1px solid var(--border)">
+            <div style="font-family:var(--brand);font-size:20px;color:var(--amber);line-height:1;padding-top:2px">4</div>
+            <div><div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text);margin-bottom:3px">Trade on Blaze Markets</div><div style="font-size:11px;color:var(--muted);line-height:1.6">Deposit funds into Blaze account #85102836 and trade. Each week upload your MT4 statement and click <strong style="color:var(--text)">Submit On-Chain</strong> to log performance publicly.</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:28px 1fr;gap:12px;padding:14px 0;border-bottom:1px solid var(--border)">
+            <div style="font-family:var(--brand);font-size:20px;color:var(--blue);line-height:1;padding-top:2px">5</div>
+            <div><div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text);margin-bottom:3px">Deposit returns + distribute</div><div style="font-size:11px;color:var(--muted);line-height:1.6">Cycle ends — go to the Trader panel. Approve USDT → Send USDT to Contract → Finalize + Distribute. Contract splits returns proportionally. Phase flips to RETURNING.</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:28px 1fr;gap:12px;padding:14px 0;border-bottom:1px solid var(--border)">
+            <div style="font-family:var(--brand);font-size:20px;color:var(--blue);line-height:1;padding-top:2px">6</div>
+            <div><div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text);margin-bottom:3px">Depositors withdraw</div><div style="font-size:11px;color:var(--muted);line-height:1.6">Each depositor connects and clicks <strong style="color:var(--text)">Withdraw Returns</strong>. Funds go straight to their wallet — no approval needed from you.</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:28px 1fr;gap:12px;padding-top:14px">
+            <div style="font-family:var(--brand);font-size:20px;color:var(--muted);line-height:1;padding-top:2px">7</div>
+            <div><div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text);margin-bottom:3px">Reset cycle</div><div style="font-size:11px;color:var(--muted);line-height:1.6">Click <strong style="color:var(--text)">Reset Cycle</strong> below to clear all records and return to OPEN phase — ready for the next round.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="panels three" style="background:var(--border)">
       <div class="panel">
         <h3>Whitelist</h3>
@@ -1788,6 +1829,14 @@ function setTxt(id,v){const el=document.getElementById(id);if(el)el.textContent=
 function show(id){const el=document.getElementById(id);if(el)el.style.display='block';}
 function fE(wei){return parseFloat(ethers.formatEther(wei)).toFixed(4);}
 function fU(raw){return(Number(raw)/1e6).toFixed(2);}
+
+function toggleHowTo(){
+  const body=document.getElementById('howToBody');
+  const icon=document.getElementById('howToIcon');
+  const open=body.style.display!=='none';
+  body.style.display=open?'none':'block';
+  icon.textContent=open?'▶':'▼';
+}
 
 // Chart.js global defaults
 Chart.defaults.color='#656d76';
