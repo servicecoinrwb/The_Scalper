@@ -369,6 +369,11 @@ textarea{resize:vertical;min-height:60px}
     </div>
   </div>
 
+  <!-- Refresh Data button — visible to all users -->
+  <div id="refreshDataBtn" style="text-align:right;margin:12px 0">
+    <button class="btn btn-ghost" style="width:auto;padding:7px 16px;font-size:10px;display:inline-block" onclick="refreshData()">🔄 Refresh Data</button>
+  </div>
+
   <!-- Hero stats (hidden until parsed) -->
   <div id="heroStats" style="display:none">
     <div class="stat-grid" id="mainStats">
@@ -1801,6 +1806,28 @@ async function depositReturns(){
     await(v>0n?await contract.depositReturns({value:v}):await contract.distributeReturnsManually()).wait();
     sa('returnAlert','ok','✓ Returns distributed.'); await refreshW3();
   }catch(e){sa('returnAlert','err',e.reason||e.message);}
+}
+async function refreshData(){
+  const btn=document.querySelector('[onclick="refreshData()"]');
+  if(btn) btn.textContent='⏳ Refreshing...';
+  localStorage.removeItem(LS_KEY);
+  try{
+    const res=await fetch('./scalper-data.json',{cache:'no-cache'});
+    if(res.ok){
+      const compact=await res.json();
+      try{localStorage.setItem(LS_KEY,JSON.stringify(compact));}catch(_){}
+      renderDashboard(fromCompact(compact),compact.filename);
+      show('mt4WeekPicker');
+      if(btn) btn.textContent='✓ Updated';
+      setTimeout(()=>{if(btn) btn.textContent='🔄 Refresh Data';},3000);
+    } else {
+      if(btn) btn.textContent='⚠️ No data found';
+      setTimeout(()=>{if(btn) btn.textContent='🔄 Refresh Data';},3000);
+    }
+  }catch(e){
+    if(btn) btn.textContent='⚠️ Error';
+    setTimeout(()=>{if(btn) btn.textContent='🔄 Refresh Data';},3000);
+  }
 }
 
 // ═══════════════════════════════════════════════════════
