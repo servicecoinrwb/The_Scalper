@@ -1,0 +1,179 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+.cs{background:#1a1f2e;color:#e8ebef;font-family:'JetBrains Mono',monospace;font-size:11px;padding:20px}
+.cs-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:.08em;color:#00925a;margin-bottom:2px}
+.cs-sub{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#656d76;margin-bottom:18px}
+.sec-label{font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:#656d76;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid #2a3040}
+.section{margin-bottom:16px}
+.card{background:#222836;border:1px solid #2a3040;border-radius:6px;padding:12px;margin-bottom:8px}
+.card-name{font-size:12px;font-weight:700;color:#adb5bd;letter-spacing:.04em;margin-bottom:8px}
+.opt{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:4px;cursor:pointer;margin-bottom:4px;border:1px solid transparent;transition:all .15s}
+.opt:hover{background:#2a3040}
+.opt.sel-g{background:rgba(0,146,90,.15);border-color:rgba(0,146,90,.4)}
+.opt.sel-r{background:rgba(209,36,47,.12);border-color:rgba(209,36,47,.3)}
+.opt.sel-a{background:rgba(191,135,0,.12);border-color:rgba(191,135,0,.3)}
+.opt input[type=radio]{accent-color:#00925a;width:14px;height:14px;cursor:pointer;flex-shrink:0}
+.opt-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dg{background:#00925a}.dr{background:#d1242f}.da{background:#bf8700}
+.opt-text{font-size:11px;color:#e8ebef;flex:1}
+.opt-read{font-size:10px;color:#656d76;margin-left:4px}
+.result-box{background:#111620;border:2px solid #2a3040;border-radius:8px;padding:16px;margin-top:4px;transition:all .3s}
+.result-bias{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:.06em;margin-bottom:6px}
+.result-score{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#656d76;margin-bottom:12px}
+.result-bullets{list-style:none;padding:0}
+.result-bullets li{font-size:11px;color:#adb5bd;padding:4px 0;border-bottom:1px solid #2a3040;line-height:1.5}
+.result-bullets li:last-child{border-bottom:none}
+.result-bullets li::before{content:'→ ';color:#00925a}
+.score-bar{height:4px;background:#2a3040;border-radius:2px;margin-bottom:12px}
+.score-fill{height:100%;border-radius:2px;transition:width .4s,background .4s}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.reset-btn{background:transparent;border:1px solid #2a3040;color:#656d76;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:6px 14px;border-radius:4px;cursor:pointer;margin-top:10px}
+.reset-btn:hover{border-color:#656d76;color:#adb5bd}
+</style>
+<div class="cs">
+  <div class="cs-title">Morning Bias Check</div>
+  <div class="cs-sub">Select each signal → get your scenario</div>
+
+  <div class="section">
+    <div class="sec-label">Risk Gauges</div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-name">DXY</div>
+        <label class="opt" onclick="pick(this,'dxy','bull')"><input type="radio" name="dxy"><div class="opt-dot dg"></div><span class="opt-text">Down <span class="opt-read">risk-on</span></span></label>
+        <label class="opt" onclick="pick(this,'dxy','bear')"><input type="radio" name="dxy"><div class="opt-dot dr"></div><span class="opt-text">Up <span class="opt-read">risk-off</span></span></label>
+        <label class="opt" onclick="pick(this,'dxy','neutral')"><input type="radio" name="dxy"><div class="opt-dot da"></div><span class="opt-text">Flat <span class="opt-read">neutral</span></span></label>
+      </div>
+      <div class="card">
+        <div class="card-name">VIX</div>
+        <label class="opt" onclick="pick(this,'vix','bull')"><input type="radio" name="vix"><div class="opt-dot dg"></div><span class="opt-text">Under 15 <span class="opt-read">complacency</span></span></label>
+        <label class="opt" onclick="pick(this,'vix','bull')"><input type="radio" name="vix"><div class="opt-dot dg"></div><span class="opt-text">15–20 <span class="opt-read">normal</span></span></label>
+        <label class="opt" onclick="pick(this,'vix','neutral')"><input type="radio" name="vix"><div class="opt-dot da"></div><span class="opt-text">20–30 <span class="opt-read">elevated</span></span></label>
+        <label class="opt" onclick="pick(this,'vix','bear')"><input type="radio" name="vix"><div class="opt-dot dr"></div><span class="opt-text">30+ <span class="opt-read">something broke</span></span></label>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-name">US10Y — 10-Year Yield</div>
+      <label class="opt" onclick="pick(this,'yield','bear')"><input type="radio" name="yield"><div class="opt-dot dr"></div><span class="opt-text">Spiking fast (+0.10 in a day) <span class="opt-read">danger zone</span></span></label>
+      <label class="opt" onclick="pick(this,'yield','bull')"><input type="radio" name="yield"><div class="opt-dot dg"></div><span class="opt-text">Dropping <span class="opt-read">rate cuts priced in</span></span></label>
+      <label class="opt" onclick="pick(this,'yield','bull')"><input type="radio" name="yield"><div class="opt-dot dg"></div><span class="opt-text">Stable <span class="opt-read">not a headwind</span></span></label>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-label">Sentiment Tells</div>
+    <div class="card">
+      <div class="card-name">NQ vs US30</div>
+      <label class="opt" onclick="pick(this,'nq','bull')"><input type="radio" name="nq"><div class="opt-dot dg"></div><span class="opt-text">NQ ripping, Dow lagging <span class="opt-read">Dow catches up</span></span></label>
+      <label class="opt" onclick="pick(this,'nq','bear')"><input type="radio" name="nq"><div class="opt-dot dr"></div><span class="opt-text">NQ dying, Dow holding <span class="opt-read">Dow catches down</span></span></label>
+      <label class="opt" onclick="pick(this,'nq','bull')"><input type="radio" name="nq"><div class="opt-dot dg"></div><span class="opt-text">Both green <span class="opt-read">clean risk-on</span></span></label>
+      <label class="opt" onclick="pick(this,'nq','bear')"><input type="radio" name="nq"><div class="opt-dot dr"></div><span class="opt-text">Both red <span class="opt-read">sit out or small size</span></span></label>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-name">Gold</div>
+        <label class="opt" onclick="pick(this,'gold','bull')"><input type="radio" name="gold"><div class="opt-dot dg"></div><span class="opt-text">0–0.5% <span class="opt-read">ignore</span></span></label>
+        <label class="opt" onclick="pick(this,'gold','neutral')"><input type="radio" name="gold"><div class="opt-dot da"></div><span class="opt-text">1%+ <span class="opt-read">fear underneath</span></span></label>
+        <label class="opt" onclick="pick(this,'gold','bear')"><input type="radio" name="gold"><div class="opt-dot dr"></div><span class="opt-text">2%+ <span class="opt-read">defensive mode</span></span></label>
+      </div>
+      <div class="card">
+        <div class="card-name">USD/JPY</div>
+        <label class="opt" onclick="pick(this,'jpy','bear')"><input type="radio" name="jpy"><div class="opt-dot dr"></div><span class="opt-text">Dropping fast <span class="opt-read">carry unwind</span></span></label>
+        <label class="opt" onclick="pick(this,'jpy','bull')"><input type="radio" name="jpy"><div class="opt-dot dg"></div><span class="opt-text">Rising <span class="opt-read">carry intact</span></span></label>
+        <label class="opt" onclick="pick(this,'jpy','neutral')"><input type="radio" name="jpy"><div class="opt-dot da"></div><span class="opt-text">Flat <span class="opt-read">no signal</span></span></label>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-name">Oil (WTI)</div>
+      <label class="opt" onclick="pick(this,'oil','bear')"><input type="radio" name="oil"><div class="opt-dot dr"></div><span class="opt-text">Down 2%+ <span class="opt-read">demand fear</span></span></label>
+      <label class="opt" onclick="pick(this,'oil','neutral')"><input type="radio" name="oil"><div class="opt-dot da"></div><span class="opt-text">Flat / mild move <span class="opt-read">no signal</span></span></label>
+      <label class="opt" onclick="pick(this,'oil','neutral')"><input type="radio" name="oil"><div class="opt-dot da"></div><span class="opt-text">Up 2%+ <span class="opt-read">inflation fear</span></span></label>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-label">Your Scenario</div>
+    <div class="result-box" id="resultBox">
+      <div class="result-bias" id="resultBias" style="color:#656d76">Waiting for signals...</div>
+      <div class="result-score" id="resultScore"></div>
+      <div class="score-bar"><div class="score-fill" id="scoreFill" style="width:0%;background:#2a3040"></div></div>
+      <ul class="result-bullets" id="resultBullets"></ul>
+    </div>
+    <button class="reset-btn" onclick="resetAll()">Reset</button>
+  </div>
+</div>
+<script>
+const state={};
+function pick(el,key,val){
+  state[key]=val;
+  document.querySelectorAll('[name='+key+']').forEach(r=>{
+    const p=r.closest('.opt');
+    p.classList.remove('sel-g','sel-r','sel-a');
+  });
+  const cls=val==='bull'?'sel-g':val==='bear'?'sel-r':'sel-a';
+  el.classList.add(cls);
+  el.querySelector('input').checked=true;
+  calc();
+}
+function calc(){
+  const keys=['dxy','vix','yield','nq','gold','jpy','oil'];
+  const filled=keys.filter(k=>state[k]);
+  if(filled.length===0) return;
+  let bull=0,bear=0,neutral=0;
+  filled.forEach(k=>{
+    if(state[k]==='bull') bull++;
+    else if(state[k]==='bear') bear++;
+    else neutral++;
+  });
+  const total=filled.length;
+  const score=Math.round((bull/total)*100);
+  const rb=document.getElementById('resultBias');
+  const rs=document.getElementById('resultScore');
+  const sf=document.getElementById('scoreFill');
+  const bl=document.getElementById('resultBullets');
+  const box=document.getElementById('resultBox');
+  let bias,color,barColor,bullets=[];
+  if(bear>=2&&state['yield']==='bear'){
+    bias='STAND DOWN';color='#d1242f';barColor='#d1242f';
+    bullets=['Yields spiking + multiple bearish signals = stay flat','This is not a day to force trades','Wait for VIX to stabilize before entering','If you must trade, micro size only and go with the trend'];
+  } else if(bull>=5){
+    bias='STRONG LONG BIAS';color='#00d47c';barColor='#00925a';
+    bullets=['Nearly all signals aligned bullish — high conviction day','Look for pullbacks into key levels to enter long','Power hour (9:30–10:30) setups are high probability today','Trail stops aggressively — momentum days can reverse fast at close'];
+  } else if(bull>=3&&bear<=1){
+    bias='LONG BIAS';color='#00925a';barColor='#00925a';
+    bullets=['Majority of signals lean bullish','Trade long setups with normal size','Be selective — not every dip is buyable','Watch NQ for confirmation before entering Dow longs'];
+  } else if(bear>=4){
+    bias='DEFENSIVE';color='#d1242f';barColor='#d1242f';
+    bullets=['Multiple bearish signals — reduce position size significantly','Avoid counter-trend longs today','Short setups on bounces may be higher probability','VIX above 20 = widen your stops or stay out'];
+  } else if(bear>=3&&bull<=1){
+    bias='SHORT BIAS';color='#e06068';barColor='#d1242f';
+    bullets=['Bears are in control of macro environment','Look for failed bounces as short entries','Do not fight the tape — no hero longs today','Keep size small, environment is hostile'];
+  } else if(Math.abs(bull-bear)<=1){
+    bias='MIXED — WAIT';color='#bf8700';barColor='#bf8700';
+    bullets=['Signals are conflicting — no clear edge','Trade smallest size or wait for clarity','Let the first 30 minutes of NY open show direction','Only take A+ setups with tight risk today'];
+  } else if(bull>bear){
+    bias='SLIGHT LONG BIAS';color='#00925a';barColor='#00925a';
+    bullets=['Lean bullish but not high conviction','Trade normal size on your best setups only','Watch for confirmation from NQ before adding','One bad signal is enough to flip — stay alert'];
+  } else {
+    bias='SLIGHT CAUTION';color='#bf8700';barColor='#bf8700';
+    bullets=['More bearish signals than bullish — reduce size','Trade only the clearest setups today','Avoid holding through lunch lull','Re-assess after London close for afternoon session'];
+  }
+  rb.textContent=bias;rb.style.color=color;
+  rs.textContent=filled.length+' of 7 signals checked · '+bull+' bullish · '+bear+' bearish · '+neutral+' neutral';
+  sf.style.width=score+'%';sf.style.background=barColor;
+  box.style.borderColor=color+'55';
+  bl.innerHTML=bullets.map(b=>'<li>'+b+'</li>').join('');
+}
+function resetAll(){
+  Object.keys(state).forEach(k=>delete state[k]);
+  document.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel-g','sel-r','sel-a'));
+  document.querySelectorAll('input[type=radio]').forEach(r=>r.checked=false);
+  document.getElementById('resultBias').textContent='Waiting for signals...';
+  document.getElementById('resultBias').style.color='#656d76';
+  document.getElementById('resultScore').textContent='';
+  document.getElementById('scoreFill').style.width='0%';
+  document.getElementById('resultBullets').innerHTML='';
+  document.getElementById('resultBox').style.borderColor='#2a3040';
+}
+</script>
