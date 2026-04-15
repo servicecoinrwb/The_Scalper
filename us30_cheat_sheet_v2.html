@@ -1,0 +1,104 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+.cs{background:#1a1f2e;color:#e8ebef;font-family:'JetBrains Mono',monospace;font-size:11px;padding:20px;min-height:100vh}
+.cs-title{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:.08em;color:#00925a;margin-bottom:4px}
+.cs-sub{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#656d76;margin-bottom:20px}
+.section{margin-bottom:18px}
+.sec-label{font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:#656d76;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid #2a3040}
+.card{background:#222836;border:1px solid #2a3040;border-radius:6px;padding:12px;margin-bottom:8px}
+.card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.card-name{font-size:13px;font-weight:700;color:#e8ebef;letter-spacing:.04em}
+.tag{font-size:8px;letter-spacing:.12em;text-transform:uppercase;padding:2px 8px;border-radius:3px}
+.t-risk{background:rgba(209,36,47,.15);color:#e06068;border:1px solid rgba(209,36,47,.3)}
+.t-core{background:rgba(0,146,90,.15);color:#00925a;border:1px solid rgba(0,146,90,.3)}
+.t-macro{background:rgba(191,135,0,.15);color:#bf8700;border:1px solid rgba(191,135,0,.3)}
+.row{display:flex;align-items:flex-start;gap:8px;margin-bottom:5px;line-height:1.5}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.g{background:#00925a}.r{background:#d1242f}.a{background:#bf8700}
+.sig{color:#e8ebef;font-weight:700}
+.rd{color:#656d76;font-weight:400}
+.formula{background:#111620;border:1px solid #2a3040;border-radius:6px;padding:12px}
+.f-title{font-size:8px;letter-spacing:.2em;text-transform:uppercase;color:#656d76;margin-bottom:10px}
+.frow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid #2a3040}
+.frow:last-child{border-bottom:none}
+.fsig{font-size:11px;color:#e8ebef;flex:1}
+.fbias{font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:3px;white-space:nowrap}
+.b-long{background:rgba(0,146,90,.2);color:#00d47c;border:1px solid rgba(0,146,90,.4)}
+.b-short{background:rgba(209,36,47,.15);color:#e06068;border:1px solid rgba(209,36,47,.3)}
+.b-caution{background:rgba(191,135,0,.15);color:#e0a800;border:1px solid rgba(191,135,0,.3)}
+.b-flat{background:rgba(101,109,118,.15);color:#adb5bd;border:1px solid rgba(101,109,118,.3)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+</style>
+<div class="cs">
+  <div class="cs-title">US30 Cheat Sheet</div>
+  <div class="cs-sub">Pre-session market read · PTTrader</div>
+
+  <div class="section">
+    <div class="sec-label">Risk Gauges</div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-top"><span class="card-name">DXY</span><span class="tag t-risk">Dollar</span></div>
+        <div class="row"><div class="dot g"></div><div><span class="sig">Down</span> <span class="rd">→ risk-on, long bias</span></div></div>
+        <div class="row"><div class="dot r"></div><div><span class="sig">Up</span> <span class="rd">→ risk-off, cautious</span></div></div>
+        <div class="row"><div class="dot a"></div><div><span class="sig">Flat</span> <span class="rd">→ follow price only</span></div></div>
+      </div>
+      <div class="card">
+        <div class="card-top"><span class="card-name">VIX</span><span class="tag t-risk">Fear</span></div>
+        <div class="row"><div class="dot g"></div><div><span class="sig">&lt;15</span> <span class="rd">→ grind up, tight stops</span></div></div>
+        <div class="row"><div class="dot g"></div><div><span class="sig">15–20</span> <span class="rd">→ normal, trade setup</span></div></div>
+        <div class="row"><div class="dot a"></div><div><span class="sig">20–30</span> <span class="rd">→ reduce size</span></div></div>
+        <div class="row"><div class="dot r"></div><div><span class="sig">30+</span> <span class="rd">→ trend only, get flat</span></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-top"><span class="card-name">US10Y — 10-Year Yield</span><span class="tag t-risk">Yields</span></div>
+      <div class="row"><div class="dot r"></div><div><span class="sig">Spiking fast (+0.10 in a day)</span> <span class="rd">→ danger zone, reduce size now</span></div></div>
+      <div class="row"><div class="dot g"></div><div><span class="sig">Dropping</span> <span class="rd">→ rate cuts priced in, generally bullish</span></div></div>
+      <div class="row"><div class="dot g"></div><div><span class="sig">Stable</span> <span class="rd">→ green light, not a headwind today</span></div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-label">Sentiment Tells</div>
+    <div class="card">
+      <div class="card-top"><span class="card-name">NQ vs US30</span><span class="tag t-core">Core</span></div>
+      <div class="row"><div class="dot g"></div><div><span class="sig">NQ ripping, Dow lagging</span> <span class="rd">→ Dow catches up, long bias</span></div></div>
+      <div class="row"><div class="dot r"></div><div><span class="sig">NQ dying, Dow holding</span> <span class="rd">→ Dow catches down, careful</span></div></div>
+      <div class="row"><div class="dot g"></div><div><span class="sig">Both green</span> <span class="rd">→ clean risk-on, high prob longs</span></div></div>
+      <div class="row"><div class="dot r"></div><div><span class="sig">Both red</span> <span class="rd">→ stay small or sit out</span></div></div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-top"><span class="card-name">Gold</span><span class="tag t-macro">Macro</span></div>
+        <div class="row"><div class="dot g"></div><div><span class="sig">0–0.5%</span> <span class="rd">→ ignore</span></div></div>
+        <div class="row"><div class="dot a"></div><div><span class="sig">1%+</span> <span class="rd">→ fear, don't chase</span></div></div>
+        <div class="row"><div class="dot r"></div><div><span class="sig">2%+</span> <span class="rd">→ defensive mode</span></div></div>
+      </div>
+      <div class="card">
+        <div class="card-top"><span class="card-name">USD/JPY</span><span class="tag t-macro">Macro</span></div>
+        <div class="row"><div class="dot r"></div><div><span class="sig">Dropping fast</span> <span class="rd">→ carry unwind, risk-off</span></div></div>
+        <div class="row"><div class="dot g"></div><div><span class="sig">Rising</span> <span class="rd">→ carry intact, risk-on</span></div></div>
+        <div class="row"><div class="dot a"></div><div><span class="sig">Flat</span> <span class="rd">→ no signal</span></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-top"><span class="card-name">Oil (WTI)</span><span class="tag t-macro">Macro</span></div>
+      <div class="row"><div class="dot r"></div><div><span class="sig">Down 2%+</span> <span class="rd">→ demand fear, watch Dow energy components</span></div></div>
+      <div class="row"><div class="dot a"></div><div><span class="sig">Up 2%+</span> <span class="rd">→ inflation fear, could spook Fed narrative</span></div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-label">Quick Morning Formula</div>
+    <div class="formula">
+      <div class="f-title">Bias Decision</div>
+      <div class="frow"><span class="fsig">DXY down + NQ up + VIX stable</span><span class="fbias b-long">Strong Long</span></div>
+      <div class="frow"><span class="fsig">DXY up + NQ down + VIX rising</span><span class="fbias b-short">Defensive</span></div>
+      <div class="frow"><span class="fsig">Gold spiking + Oil crashing</span><span class="fbias b-caution">Fear — even if indices green</span></div>
+      <div class="frow"><span class="fsig">Yields spiking fast</span><span class="fbias b-caution">Reduce size — no exceptions</span></div>
+      <div class="frow"><span class="fsig">Mixed signals / unclear</span><span class="fbias b-flat">Small size, wait</span></div>
+    </div>
+  </div>
+</div>
