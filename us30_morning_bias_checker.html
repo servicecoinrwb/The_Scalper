@@ -4,11 +4,11 @@
 *{box-sizing:border-box;margin:0;padding:0}
 .cs{background:#1a1f2e;color:#e8ebef;font-family:'JetBrains Mono',monospace;font-size:11px;padding:20px}
 .cs-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:.08em;color:#00925a;margin-bottom:2px}
-.cs-sub{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#656d76;margin-bottom:18px}
-.sec-label{font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:#656d76;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid #2a3040}
+.cs-sub{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#adb5bd;margin-bottom:18px}
+.sec-label{font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:#adb5bd;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid #2a3040}
 .section{margin-bottom:16px}
 .card{background:#222836;border:1px solid #2a3040;border-radius:6px;padding:12px;margin-bottom:8px}
-.card-name{font-size:12px;font-weight:700;color:#adb5bd;letter-spacing:.04em;margin-bottom:8px}
+.card-name{font-size:12px;font-weight:700;color:#e8ebef;letter-spacing:.04em;margin-bottom:8px}
 .opt{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:4px;cursor:pointer;margin-bottom:4px;border:1px solid transparent;transition:all .15s}
 .opt:hover{background:#2a3040}
 .opt.sel-g{background:rgba(0,146,90,.15);border-color:rgba(0,146,90,.4)}
@@ -17,24 +17,101 @@
 .opt input[type=radio]{accent-color:#00925a;width:14px;height:14px;cursor:pointer;flex-shrink:0}
 .opt-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .dg{background:#00925a}.dr{background:#d1242f}.da{background:#bf8700}
-.opt-text{font-size:11px;color:#e8ebef;flex:1}
-.opt-read{font-size:10px;color:#656d76;margin-left:4px}
+.opt-text{font-size:11px;color:#e8ebef;flex:1;font-weight:700}
+.opt-read{font-size:10px;color:#adb5bd;margin-left:4px;font-weight:400}
 .result-box{background:#111620;border:2px solid #2a3040;border-radius:8px;padding:16px;margin-top:4px;transition:all .3s}
 .result-bias{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:.06em;margin-bottom:6px}
-.result-score{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#656d76;margin-bottom:12px}
+.result-score{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#adb5bd;margin-bottom:12px}
 .result-bullets{list-style:none;padding:0}
-.result-bullets li{font-size:11px;color:#adb5bd;padding:4px 0;border-bottom:1px solid #2a3040;line-height:1.5}
+.result-bullets li{font-size:11px;color:#e8ebef;padding:4px 0;border-bottom:1px solid #2a3040;line-height:1.5}
 .result-bullets li:last-child{border-bottom:none}
 .result-bullets li::before{content:'→ ';color:#00925a}
 .score-bar{height:4px;background:#2a3040;border-radius:2px;margin-bottom:12px}
 .score-fill{height:100%;border-radius:2px;transition:width .4s,background .4s}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.reset-btn{background:transparent;border:1px solid #2a3040;color:#656d76;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:6px 14px;border-radius:4px;cursor:pointer;margin-top:10px}
-.reset-btn:hover{border-color:#656d76;color:#adb5bd}
+.reset-btn{background:transparent;border:1px solid #2a3040;color:#adb5bd;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:6px 14px;border-radius:4px;cursor:pointer;margin-top:10px}
+.reset-btn:hover{border-color:#adb5bd;color:#e8ebef}
+.level-input{width:100%;background:#111620;border:1px solid #2a3040;color:#e8ebef;font-family:'JetBrains Mono',monospace;font-size:12px;padding:8px 10px;border-radius:4px;outline:none;transition:border-color .2s}
+.level-input:focus{border-color:#00925a}
+.level-input::placeholder{color:#656d76}
+.cmd-box{background:#111620;border:1px solid #2a3040;border-radius:4px;padding:10px 12px;font-size:11px;color:#00d47c;letter-spacing:.04em;word-break:break-all;margin-top:8px;min-height:36px}
+.copy-btn{background:#00925a;border:none;color:#1a1f2e;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:8px 18px;border-radius:4px;cursor:pointer;margin-top:8px;transition:opacity .2s}
+.copy-btn:hover{opacity:.85}
+.copied{background:#007a4a}
+.div-score{font-size:11px;margin-top:6px;padding:6px 10px;border-radius:4px;border:1px solid #2a3040}
+.steps-toggle{display:flex;align-items:center;justify-content:space-between;background:#222836;border:1px solid #2a3040;border-radius:6px;padding:12px 14px;cursor:pointer;margin-bottom:8px;user-select:none}
+.steps-toggle:hover{border-color:#00925a}
+.steps-toggle-label{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#00925a;font-weight:700}
+.steps-toggle-icon{color:#adb5bd;font-size:12px}
+.steps-box{background:#111620;border:1px solid #2a3040;border-radius:6px;padding:14px;margin-bottom:8px;display:none}
+.step-row{display:flex;align-items:flex-start;gap:12px;padding:8px 0;border-bottom:1px solid #2a3040}
+.step-row:last-child{border-bottom:none;padding-bottom:0}
+.step-num{font-family:'Bebas Neue',sans-serif;font-size:22px;color:#00925a;line-height:1;flex-shrink:0;width:20px}
+.step-content{flex:1}
+.step-time{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#00925a;margin-bottom:2px}
+.step-text{font-size:11px;color:#e8ebef;line-height:1.5}
+.step-sub{font-size:10px;color:#adb5bd;margin-top:2px;line-height:1.4}
 </style>
 <div class="cs">
   <div class="cs-title">Morning Bias Check</div>
-  <div class="cs-sub">Select each signal → get your scenario</div>
+  <div class="cs-sub">US30 · PTTrader · Daily Pre-Session Routine</div>
+
+  <div class="section">
+    <div class="steps-toggle" onclick="toggleSteps()">
+      <span class="steps-toggle-label">Morning Routine — How To Use This Tool</span>
+      <span class="steps-toggle-icon" id="stepsIcon">▶</span>
+    </div>
+    <div class="steps-box" id="stepsBox">
+      <div class="step-row">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-time">6:00 AM ET — Automatic</div>
+          <div class="step-text">Bot scan arrives in Telegram</div>
+          <div class="step-sub">DXY · VIX · US10Y · NQ · SPX · US30 · Gold · Oil · USDJPY — all % changes delivered automatically. No action needed.</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-time">6:05 AM ET</div>
+          <div class="step-text">Fill in the 7 signals below</div>
+          <div class="step-sub">Use % changes from the bot scan. Green in scan = bullish option. Red in scan = bearish option. Enter NQ and US30 % for divergence score.</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-time">6:10 AM ET</div>
+          <div class="step-text">Mark overnight levels on your chart</div>
+          <div class="step-sub">Overnight high · Overnight low · Previous day high · Previous day low. Mark from 4:00 PM yesterday to now.</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <div class="step-time">6:15 AM ET</div>
+          <div class="step-text">Enter levels → copy command → paste into PowerShell</div>
+          <div class="step-sub">Scroll to Level Alert Bot below. Type your 4 levels. Copy the command. Open new PowerShell window and paste. Level bot starts watching.</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <div class="step-time">9:15 AM ET</div>
+          <div class="step-text">Come back fresh — plan is already set</div>
+          <div class="step-sub">Bias is set. Levels are marked. Bot is watching. Wait for 9:45 before any trade. Let the open shakeout happen first.</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">6</div>
+        <div class="step-content">
+          <div class="step-time">All Day — Automatic</div>
+          <div class="step-text">Level alerts fire in Telegram when within 10 points</div>
+          <div class="step-sub">Session alerts fire throughout the day. Level bot stops automatically at 4:00 PM ET.</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div class="section">
     <div class="sec-label">Risk Gauges</div>
@@ -93,6 +170,24 @@
   </div>
 
   <div class="section">
+    <div class="sec-label">NQ vs US30 Divergence Score</div>
+    <div class="card">
+      <div class="card-name">Enter % changes from bot scan</div>
+      <div class="grid2" style="gap:8px;margin-bottom:8px">
+        <div>
+          <div style="font-size:9px;color:#adb5bd;margin-bottom:4px;letter-spacing:.1em;text-transform:uppercase">NQ % change</div>
+          <input class="level-input" type="number" id="nqPct" placeholder="+1.40" step="0.01" oninput="calcDiv()">
+        </div>
+        <div>
+          <div style="font-size:9px;color:#adb5bd;margin-bottom:4px;letter-spacing:.1em;text-transform:uppercase">US30 % change</div>
+          <input class="level-input" type="number" id="us30Pct" placeholder="+0.24" step="0.01" oninput="calcDiv()">
+        </div>
+      </div>
+      <div class="div-score" id="divScore" style="color:#adb5bd">Enter both values to see divergence score</div>
+    </div>
+  </div>
+
+  <div class="section">
     <div class="sec-label">Your Scenario</div>
     <div class="result-box" id="resultBox">
       <div class="result-bias" id="resultBias" style="color:#656d76">Waiting for signals...</div>
@@ -102,68 +197,98 @@
     </div>
     <button class="reset-btn" onclick="resetAll()">Reset</button>
   </div>
+
+  <div class="section">
+    <div class="sec-label">Level Alert Bot — Set Your Levels</div>
+    <div class="card">
+      <div class="card-name">Enter today's key levels</div>
+      <div class="grid2" style="gap:8px;margin-bottom:8px">
+        <div>
+          <div style="font-size:9px;color:#adb5bd;margin-bottom:4px;letter-spacing:.1em;text-transform:uppercase">Overnight High</div>
+          <input class="level-input" type="number" id="onHigh" placeholder="48670" oninput="buildCmd()">
+        </div>
+        <div>
+          <div style="font-size:9px;color:#adb5bd;margin-bottom:4px;letter-spacing:.1em;text-transform:uppercase">Overnight Low</div>
+          <input class="level-input" type="number" id="onLow" placeholder="48483" oninput="buildCmd()">
+        </div>
+        <div>
+          <div style="font-size:9px;color:#adb5bd;margin-bottom:4px;letter-spacing:.1em;text-transform:uppercase">Prev Day High</div>
+          <input class="level-input" type="number" id="pdHigh" placeholder="48680" oninput="buildCmd()">
+        </div>
+        <div>
+          <div style="font-size:9px;color:#adb5bd;margin-bottom:4px;letter-spacing:.1em;text-transform:uppercase">Prev Day Low</div>
+          <input class="level-input" type="number" id="pdLow" placeholder="48260" oninput="buildCmd()">
+        </div>
+      </div>
+      <div style="font-size:9px;color:#adb5bd;margin-bottom:4px;letter-spacing:.1em;text-transform:uppercase">PowerShell Command</div>
+      <div class="cmd-box" id="cmdBox">Fill in levels above to generate command...</div>
+      <button class="copy-btn" id="copyBtn" onclick="copyCmd()">Copy Command</button>
+    </div>
+  </div>
+
 </div>
 <script>
+function toggleSteps(){
+  const box=document.getElementById('stepsBox');
+  const icon=document.getElementById('stepsIcon');
+  const open=box.style.display==='block';
+  box.style.display=open?'none':'block';
+  icon.textContent=open?'▶':'▼';
+}
 const state={};
 function pick(el,key,val){
   state[key]=val;
-  document.querySelectorAll('[name='+key+']').forEach(r=>{
-    const p=r.closest('.opt');
-    p.classList.remove('sel-g','sel-r','sel-a');
-  });
-  const cls=val==='bull'?'sel-g':val==='bear'?'sel-r':'sel-a';
-  el.classList.add(cls);
+  document.querySelectorAll('[name='+key+']').forEach(r=>{r.closest('.opt').classList.remove('sel-g','sel-r','sel-a');});
+  el.classList.add(val==='bull'?'sel-g':val==='bear'?'sel-r':'sel-a');
   el.querySelector('input').checked=true;
   calc();
 }
 function calc(){
   const keys=['dxy','vix','yield','nq','gold','jpy','oil'];
   const filled=keys.filter(k=>state[k]);
-  if(filled.length===0) return;
+  if(!filled.length) return;
   let bull=0,bear=0,neutral=0;
-  filled.forEach(k=>{
-    if(state[k]==='bull') bull++;
-    else if(state[k]==='bear') bear++;
-    else neutral++;
-  });
+  filled.forEach(k=>{if(state[k]==='bull')bull++;else if(state[k]==='bear')bear++;else neutral++;});
   const total=filled.length;
   const score=Math.round((bull/total)*100);
-  const rb=document.getElementById('resultBias');
-  const rs=document.getElementById('resultScore');
-  const sf=document.getElementById('scoreFill');
-  const bl=document.getElementById('resultBullets');
-  const box=document.getElementById('resultBox');
+  const rb=document.getElementById('resultBias'),rs=document.getElementById('resultScore'),sf=document.getElementById('scoreFill'),bl=document.getElementById('resultBullets'),box=document.getElementById('resultBox');
   let bias,color,barColor,bullets=[];
-  if(bear>=2&&state['yield']==='bear'){
-    bias='STAND DOWN';color='#d1242f';barColor='#d1242f';
-    bullets=['Yields spiking + multiple bearish signals = stay flat','This is not a day to force trades','Wait for VIX to stabilize before entering','If you must trade, micro size only and go with the trend'];
-  } else if(bull>=5){
-    bias='STRONG LONG BIAS';color='#00d47c';barColor='#00925a';
-    bullets=['Nearly all signals aligned bullish — high conviction day','Look for pullbacks into key levels to enter long','Power hour (9:30–10:30) setups are high probability today','Trail stops aggressively — momentum days can reverse fast at close'];
-  } else if(bull>=3&&bear<=1){
-    bias='LONG BIAS';color='#00925a';barColor='#00925a';
-    bullets=['Majority of signals lean bullish','Trade long setups with normal size','Be selective — not every dip is buyable','Watch NQ for confirmation before entering Dow longs'];
-  } else if(bear>=4){
-    bias='DEFENSIVE';color='#d1242f';barColor='#d1242f';
-    bullets=['Multiple bearish signals — reduce position size significantly','Avoid counter-trend longs today','Short setups on bounces may be higher probability','VIX above 20 = widen your stops or stay out'];
-  } else if(bear>=3&&bull<=1){
-    bias='SHORT BIAS';color='#e06068';barColor='#d1242f';
-    bullets=['Bears are in control of macro environment','Look for failed bounces as short entries','Do not fight the tape — no hero longs today','Keep size small, environment is hostile'];
-  } else if(Math.abs(bull-bear)<=1){
-    bias='MIXED — WAIT';color='#bf8700';barColor='#bf8700';
-    bullets=['Signals are conflicting — no clear edge','Trade smallest size or wait for clarity','Let the first 30 minutes of NY open show direction','Only take A+ setups with tight risk today'];
-  } else if(bull>bear){
-    bias='SLIGHT LONG BIAS';color='#00925a';barColor='#00925a';
-    bullets=['Lean bullish but not high conviction','Trade normal size on your best setups only','Watch for confirmation from NQ before adding','One bad signal is enough to flip — stay alert'];
-  } else {
-    bias='SLIGHT CAUTION';color='#bf8700';barColor='#bf8700';
-    bullets=['More bearish signals than bullish — reduce size','Trade only the clearest setups today','Avoid holding through lunch lull','Re-assess after London close for afternoon session'];
-  }
+  if(bear>=2&&state['yield']==='bear'){bias='STAND DOWN';color='#d1242f';barColor='#d1242f';bullets=['Yields spiking + multiple bearish signals = stay flat','This is not a day to force trades','Wait for VIX to stabilize before entering','Micro size only if you must trade'];}
+  else if(bull>=5){bias='STRONG LONG BIAS';color='#00d47c';barColor='#00925a';bullets=['Nearly all signals aligned bullish — high conviction day','Look for pullbacks into key levels to enter long','Power hour (9:30–10:30) setups are high probability today','Trail stops aggressively — momentum days can reverse fast at close'];}
+  else if(bull>=3&&bear<=1){bias='LONG BIAS';color='#00925a';barColor='#00925a';bullets=['Majority of signals lean bullish','Trade long setups with normal size','Watch NQ for confirmation before entering Dow longs','Be selective — not every dip is buyable'];}
+  else if(bear>=4){bias='DEFENSIVE';color='#d1242f';barColor='#d1242f';bullets=['Multiple bearish signals — reduce size significantly','Avoid counter-trend longs today','Short setups on bounces may be higher probability','VIX above 20 = widen stops or stay out'];}
+  else if(bear>=3&&bull<=1){bias='SHORT BIAS';color='#e06068';barColor='#d1242f';bullets=['Bears in control of macro environment','Look for failed bounces as short entries','Do not fight the tape — no hero longs today','Keep size small, environment is hostile'];}
+  else if(Math.abs(bull-bear)<=1){bias='MIXED — WAIT';color='#bf8700';barColor='#bf8700';bullets=['Signals are conflicting — no clear edge','Trade smallest size or wait for clarity','Let first 30 minutes of NY open show direction','Only take A+ setups with tight risk today'];}
+  else if(bull>bear){bias='SLIGHT LONG BIAS';color='#00925a';barColor='#00925a';bullets=['Lean bullish but not high conviction','Trade normal size on best setups only','Watch for confirmation from NQ before adding','One bad signal is enough to flip — stay alert'];}
+  else{bias='SLIGHT CAUTION';color='#bf8700';barColor='#bf8700';bullets=['More bearish signals than bullish — reduce size','Trade only the clearest setups today','Avoid holding through lunch lull','Re-assess after London close for afternoon session'];}
   rb.textContent=bias;rb.style.color=color;
   rs.textContent=filled.length+' of 7 signals checked · '+bull+' bullish · '+bear+' bearish · '+neutral+' neutral';
   sf.style.width=score+'%';sf.style.background=barColor;
   box.style.borderColor=color+'55';
   bl.innerHTML=bullets.map(b=>'<li>'+b+'</li>').join('');
+}
+function calcDiv(){
+  const nq=parseFloat(document.getElementById('nqPct').value),us=parseFloat(document.getElementById('us30Pct').value),el=document.getElementById('divScore');
+  if(isNaN(nq)||isNaN(us)){el.style.color='#adb5bd';el.textContent='Enter both values to see divergence score';return;}
+  const diff=Math.abs(nq-us).toFixed(2);
+  if(diff<0.5){el.style.color='#00925a';el.textContent='Divergence: '+diff+'% — Low. Clean day, trade with confidence.';}
+  else if(diff<1){el.style.color='#bf8700';el.textContent='Divergence: '+diff+'% — Moderate. Caution, reduce size on US30 longs.';}
+  else{el.style.color='#d1242f';el.textContent='Divergence: '+diff+'% — HIGH WARNING. NQ and US30 decoupled. Sit out or micro size.';}
+}
+function buildCmd(){
+  const oh=document.getElementById('onHigh').value,ol=document.getElementById('onLow').value,ph=document.getElementById('pdHigh').value,pl=document.getElementById('pdLow').value;
+  const cmd=document.getElementById('cmdBox');
+  if(!oh&&!ol&&!ph&&!pl){cmd.textContent='Fill in levels above to generate command...';return;}
+  cmd.textContent='python C:\\scalper_levels.py '+[oh,ol,ph,pl].filter(v=>v).join(' ');
+}
+function copyCmd(){
+  const cmd=document.getElementById('cmdBox').textContent;
+  if(cmd.includes('Fill in')) return;
+  navigator.clipboard.writeText(cmd).then(()=>{
+    const btn=document.getElementById('copyBtn');
+    btn.textContent='Copied!';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='Copy Command';btn.classList.remove('copied');},2000);
+  });
 }
 function resetAll(){
   Object.keys(state).forEach(k=>delete state[k]);
@@ -175,5 +300,14 @@ function resetAll(){
   document.getElementById('scoreFill').style.width='0%';
   document.getElementById('resultBullets').innerHTML='';
   document.getElementById('resultBox').style.borderColor='#2a3040';
+  document.getElementById('nqPct').value='';
+  document.getElementById('us30Pct').value='';
+  document.getElementById('divScore').style.color='#adb5bd';
+  document.getElementById('divScore').textContent='Enter both values to see divergence score';
+  document.getElementById('onHigh').value='';
+  document.getElementById('onLow').value='';
+  document.getElementById('pdHigh').value='';
+  document.getElementById('pdLow').value='';
+  document.getElementById('cmdBox').textContent='Fill in levels above to generate command...';
 }
 </script>
