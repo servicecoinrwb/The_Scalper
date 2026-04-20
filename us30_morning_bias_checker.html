@@ -29,6 +29,7 @@
 .score-bar{height:4px;background:#2a3040;border-radius:2px;margin-bottom:12px}
 .score-fill{height:100%;border-radius:2px;transition:width .4s,background .4s}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .reset-btn{background:transparent;border:1px solid #2a3040;color:#adb5bd;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:6px 14px;border-radius:4px;cursor:pointer;margin-top:10px}
 .reset-btn:hover{border-color:#adb5bd;color:#e8ebef}
 .level-input{width:100%;background:#111620;border:1px solid #2a3040;color:#e8ebef;font-family:'JetBrains Mono',monospace;font-size:12px;padding:8px 10px;border-radius:4px;outline:none;transition:border-color .2s}
@@ -38,16 +39,14 @@
 .copy-btn{background:#00925a;border:none;color:#1a1f2e;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:8px 18px;border-radius:4px;cursor:pointer;margin-top:8px;transition:opacity .2s}
 .copy-btn:hover{opacity:.85}
 .copied{background:#007a4a}
-.div-score{font-size:11px;margin-top:6px;padding:6px 10px;border-radius:4px;border:1px solid #2a3040}
+.score-box{font-size:11px;margin-top:6px;padding:8px 10px;border-radius:4px;border:1px solid #2a3040;line-height:1.6}
 .steps-toggle{display:flex;align-items:center;justify-content:space-between;background:#222836;border:1px solid #2a3040;border-radius:6px;padding:12px 14px;cursor:pointer;margin-bottom:8px;user-select:none}
 .steps-toggle:hover{border-color:#00925a}
 .steps-toggle-label{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#00925a;font-weight:700}
-.steps-toggle-icon{color:#adb5bd;font-size:12px}
 .steps-box{background:#111620;border:1px solid #2a3040;border-radius:6px;padding:14px;margin-bottom:8px;display:none}
 .step-row{display:flex;align-items:flex-start;gap:12px;padding:8px 0;border-bottom:1px solid #2a3040}
 .step-row:last-child{border-bottom:none;padding-bottom:0}
 .step-num{font-family:'Bebas Neue',sans-serif;font-size:22px;color:#00925a;line-height:1;flex-shrink:0;width:20px}
-.step-content{flex:1}
 .step-time{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#00925a;margin-bottom:2px}
 .step-text{font-size:11px;color:#e8ebef;line-height:1.5}
 .step-sub{font-size:10px;color:#adb5bd;margin-top:2px;line-height:1.4}
@@ -59,57 +58,15 @@
   <div class="section">
     <div class="steps-toggle" onclick="toggleSteps()">
       <span class="steps-toggle-label">Morning Routine — How To Use This Tool</span>
-      <span class="steps-toggle-icon" id="stepsIcon">▶</span>
+      <span style="color:#adb5bd;font-size:12px" id="stepsIcon">▶</span>
     </div>
     <div class="steps-box" id="stepsBox">
-      <div class="step-row">
-        <div class="step-num">1</div>
-        <div class="step-content">
-          <div class="step-time">6:00 AM ET — Automatic</div>
-          <div class="step-text">Bot scan arrives in Telegram</div>
-          <div class="step-sub">DXY · VIX · US10Y · NQ · SPX · US30 · Gold · Oil · USDJPY — all % changes delivered automatically. No action needed.</div>
-        </div>
-      </div>
-      <div class="step-row">
-        <div class="step-num">2</div>
-        <div class="step-content">
-          <div class="step-time">6:05 AM ET</div>
-          <div class="step-text">Fill in the 7 signals below</div>
-          <div class="step-sub">Use % changes from the bot scan. Green in scan = bullish option. Red in scan = bearish option. Enter NQ and US30 % for divergence score.</div>
-        </div>
-      </div>
-      <div class="step-row">
-        <div class="step-num">3</div>
-        <div class="step-content">
-          <div class="step-time">6:10 AM ET</div>
-          <div class="step-text">Mark overnight levels on your chart</div>
-          <div class="step-sub">Overnight high · Overnight low · Previous day high · Previous day low. Mark from 4:00 PM yesterday to now.</div>
-        </div>
-      </div>
-      <div class="step-row">
-        <div class="step-num">4</div>
-        <div class="step-content">
-          <div class="step-time">6:15 AM ET</div>
-          <div class="step-text">Enter levels → copy command → paste into PowerShell</div>
-          <div class="step-sub">Scroll to Level Alert Bot below. Type your 4 levels. Copy the command. Open new PowerShell window and paste. Level bot starts watching.</div>
-        </div>
-      </div>
-      <div class="step-row">
-        <div class="step-num">5</div>
-        <div class="step-content">
-          <div class="step-time">9:15 AM ET</div>
-          <div class="step-text">Come back fresh — plan is already set</div>
-          <div class="step-sub">Bias is set. Levels are marked. Bot is watching. Wait for 9:45 before any trade. Let the open shakeout happen first.</div>
-        </div>
-      </div>
-      <div class="step-row">
-        <div class="step-num">6</div>
-        <div class="step-content">
-          <div class="step-time">All Day — Automatic</div>
-          <div class="step-text">Level alerts fire in Telegram when within 10 points</div>
-          <div class="step-sub">Session alerts fire throughout the day. Level bot stops automatically at 4:00 PM ET.</div>
-        </div>
-      </div>
+      <div class="step-row"><div class="step-num">1</div><div><div class="step-time">6:00 AM ET — Automatic</div><div class="step-text">Bot scan arrives in Telegram</div><div class="step-sub">All % changes delivered automatically. No action needed.</div></div></div>
+      <div class="step-row"><div class="step-num">2</div><div><div class="step-time">6:05 AM ET</div><div class="step-text">Fill in the 7 signals + yield curve below</div><div class="step-sub">Use % changes from bot scan. Enter 10Y and 2Y actual values for spread calculation.</div></div></div>
+      <div class="step-row"><div class="step-num">3</div><div><div class="step-time">6:10 AM ET</div><div class="step-text">Mark overnight levels on chart</div><div class="step-sub">Overnight high · low · Previous day high · low. From 4PM yesterday to now.</div></div></div>
+      <div class="step-row"><div class="step-num">4</div><div><div class="step-time">8:30 AM ET</div><div class="step-text">Enter levels → copy command → paste into PowerShell</div><div class="step-sub">Scroll to Level Alert Bot below. Copy command. Paste into new PowerShell window.</div></div></div>
+      <div class="step-row"><div class="step-num">5</div><div><div class="step-time">9:15 AM ET</div><div class="step-text">Come back fresh — plan is set</div><div class="step-sub">Wait for 9:45 before any trade. Let the open shakeout happen first.</div></div></div>
+      <div class="step-row"><div class="step-num">6</div><div><div class="step-time">All Day — Automatic</div><div class="step-text">Level alerts fire within 20 points. Bot stops at 4 PM ET.</div></div></div>
     </div>
   </div>
 
@@ -135,6 +92,28 @@
       <label class="opt" onclick="pick(this,'yield','bear')"><input type="radio" name="yield"><div class="opt-dot dr"></div><span class="opt-text">Spiking fast (+0.10 in a day) <span class="opt-read">danger zone</span></span></label>
       <label class="opt" onclick="pick(this,'yield','bull')"><input type="radio" name="yield"><div class="opt-dot dg"></div><span class="opt-text">Dropping <span class="opt-read">rate cuts priced in</span></span></label>
       <label class="opt" onclick="pick(this,'yield','bull')"><input type="radio" name="yield"><div class="opt-dot dg"></div><span class="opt-text">Stable <span class="opt-read">not a headwind</span></span></label>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-label">Yield Curve Analysis</div>
+    <div class="card">
+      <div class="card-name">Enter actual yield values from bot scan</div>
+      <div class="grid3" style="gap:8px;margin-bottom:8px">
+        <div>
+          <div style="font-size:9px;color:#adb5bd;margin-bottom:4px;letter-spacing:.1em;text-transform:uppercase">10Y Yield %</div>
+          <input class="level-input" type="number" id="y10val" placeholder="4.25" step="0.01" oninput="calcYield()">
+        </div>
+        <div>
+          <div style="font-size:9px;color:#adb5bd;margin-bottom:4px;letter-spacing:.1em;text-transform:uppercase">2Y Yield %</div>
+          <input class="level-input" type="number" id="y2val" placeholder="3.60" step="0.01" oninput="calcYield()">
+        </div>
+        <div>
+          <div style="font-size:9px;color:#adb5bd;margin-bottom:4px;letter-spacing:.1em;text-transform:uppercase">10Y Change %</div>
+          <input class="level-input" type="number" id="y10chg" placeholder="-1.39" step="0.01" oninput="calcYield()">
+        </div>
+      </div>
+      <div class="score-box" id="yieldResult" style="color:#adb5bd">Enter yield values to see curve analysis</div>
     </div>
   </div>
 
@@ -183,7 +162,7 @@
           <input class="level-input" type="number" id="us30Pct" placeholder="+0.24" step="0.01" oninput="calcDiv()">
         </div>
       </div>
-      <div class="div-score" id="divScore" style="color:#adb5bd">Enter both values to see divergence score</div>
+      <div class="score-box" id="divScore" style="color:#adb5bd">Enter both values to see divergence score</div>
     </div>
   </div>
 
@@ -205,19 +184,19 @@
       <div class="grid2" style="gap:8px;margin-bottom:8px">
         <div>
           <div style="font-size:9px;color:#adb5bd;margin-bottom:4px;letter-spacing:.1em;text-transform:uppercase">Overnight High</div>
-          <input class="level-input" type="number" id="onHigh" placeholder="48670" oninput="buildCmd()">
+          <input class="level-input" type="number" id="onHigh" placeholder="49262" oninput="buildCmd()">
         </div>
         <div>
           <div style="font-size:9px;color:#adb5bd;margin-bottom:4px;letter-spacing:.1em;text-transform:uppercase">Overnight Low</div>
-          <input class="level-input" type="number" id="onLow" placeholder="48483" oninput="buildCmd()">
+          <input class="level-input" type="number" id="onLow" placeholder="48908" oninput="buildCmd()">
         </div>
         <div>
           <div style="font-size:9px;color:#adb5bd;margin-bottom:4px;letter-spacing:.1em;text-transform:uppercase">Prev Day High</div>
-          <input class="level-input" type="number" id="pdHigh" placeholder="48680" oninput="buildCmd()">
+          <input class="level-input" type="number" id="pdHigh" placeholder="49719" oninput="buildCmd()">
         </div>
         <div>
           <div style="font-size:9px;color:#adb5bd;margin-bottom:4px;letter-spacing:.1em;text-transform:uppercase">Prev Day Low</div>
-          <input class="level-input" type="number" id="pdLow" placeholder="48260" oninput="buildCmd()">
+          <input class="level-input" type="number" id="pdLow" placeholder="49086" oninput="buildCmd()">
         </div>
       </div>
       <div style="font-size:9px;color:#adb5bd;margin-bottom:4px;letter-spacing:.1em;text-transform:uppercase">PowerShell Command</div>
@@ -229,12 +208,37 @@
 </div>
 <script>
 function toggleSteps(){
-  const box=document.getElementById('stepsBox');
-  const icon=document.getElementById('stepsIcon');
+  const box=document.getElementById('stepsBox'),icon=document.getElementById('stepsIcon');
   const open=box.style.display==='block';
   box.style.display=open?'none':'block';
   icon.textContent=open?'▶':'▼';
 }
+
+function calcYield(){
+  const y10=parseFloat(document.getElementById('y10val').value);
+  const y2=parseFloat(document.getElementById('y2val').value);
+  const chg=parseFloat(document.getElementById('y10chg').value);
+  const el=document.getElementById('yieldResult');
+  if(isNaN(y10)||isNaN(y2)){el.style.color='#adb5bd';el.textContent='Enter yield values to see curve analysis';return;}
+  const spread=parseFloat((y10-y2).toFixed(3));
+  let lines=[];
+  let color='#adb5bd';
+  if(spread>0.5){lines.push('📈 Curve steepening ('+spread.toFixed(2)+'%) → rate cuts priced in → bullish');color='#00925a';}
+  else if(spread>0){lines.push('➡️ Curve normal ('+spread.toFixed(2)+'%) → neutral environment');color='#adb5bd';}
+  else if(spread>-0.5){lines.push('⚠️ Curve flattening ('+spread.toFixed(2)+'%) → caution');color='#bf8700';}
+  else{lines.push('🚨 Curve INVERTED ('+spread.toFixed(2)+'%) → recession signal → defensive');color='#d1242f';}
+  lines.push('Spread: 10Y '+y10.toFixed(3)+'% − 2Y '+y2.toFixed(3)+'% = '+spread.toFixed(3)+'%');
+  if(!isNaN(chg)){
+    if(chg>=0.08){lines.push('🚨 10Y spiking fast → reduce size now');color='#d1242f';}
+    else if(chg>=0.05){lines.push('⚠️ 10Y rising → headwind for equities');}
+    else if(chg<=-0.05){lines.push('✅ 10Y dropping → tailwind for stocks');}
+    else{lines.push('✅ 10Y stable → not a headwind');}
+  }
+  if(y2>=5.0){lines.push('🚨 2Y above 5% → bonds competing with stocks');color='#d1242f';}
+  el.style.color=color;
+  el.innerHTML=lines.join('<br>');
+}
+
 const state={};
 function pick(el,key,val){
   state[key]=val;
@@ -294,20 +298,14 @@ function resetAll(){
   Object.keys(state).forEach(k=>delete state[k]);
   document.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel-g','sel-r','sel-a'));
   document.querySelectorAll('input[type=radio]').forEach(r=>r.checked=false);
-  document.getElementById('resultBias').textContent='Waiting for signals...';
-  document.getElementById('resultBias').style.color='#656d76';
-  document.getElementById('resultScore').textContent='';
+  ['resultBias','resultScore','resultBullets'].forEach(id=>{const el=document.getElementById(id);if(el){el.textContent='';if(id==='resultBias'){el.textContent='Waiting for signals...';el.style.color='#656d76';}}});
   document.getElementById('scoreFill').style.width='0%';
-  document.getElementById('resultBullets').innerHTML='';
   document.getElementById('resultBox').style.borderColor='#2a3040';
-  document.getElementById('nqPct').value='';
-  document.getElementById('us30Pct').value='';
+  ['nqPct','us30Pct','y10val','y2val','y10chg','onHigh','onLow','pdHigh','pdLow'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('divScore').style.color='#adb5bd';
   document.getElementById('divScore').textContent='Enter both values to see divergence score';
-  document.getElementById('onHigh').value='';
-  document.getElementById('onLow').value='';
-  document.getElementById('pdHigh').value='';
-  document.getElementById('pdLow').value='';
+  document.getElementById('yieldResult').style.color='#adb5bd';
+  document.getElementById('yieldResult').textContent='Enter yield values to see curve analysis';
   document.getElementById('cmdBox').textContent='Fill in levels above to generate command...';
 }
 </script>
